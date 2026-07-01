@@ -1,0 +1,282 @@
+name: earlyreleasetest
+
+mongo:
+  prefix: nucelar_stream_test_june
+  reset: false
+
+channel:
+- name: earlyrelease_ext
+  access: []
+  policy: []
+
+
+task:
+
+- title: ingest
+  template:
+    live:
+      - resolve_run_time_aliases
+      - hash_t2_config
+
+  unit: AlertConsumer
+  config:
+    iter_max: 1000
+    compiler_opts: LSSTCompilerOptions
+    supplier:
+      unit: LSSTAlertSupplier
+      config:
+        one_datapoint_per_visit: false
+        deserialize: null
+        loader:
+          unit: ParquetAlertLoader
+          config:
+            path: /Users/jannisnecker/Data/lsst-alerts-2026-05-24--2026-06-24-r0.8.parquet
+#          unit: LSSTArchiveAlertLoader
+#          config:
+#            archive_url: "https://ampel-dev.ia.zeuthen.desy.de/api/lsst/archive/v1/"
+#            # Oct 1 - 60949
+#            # Nov 1 - 60980
+#            # Dec 1 - 61010
+#            # Jan 10 - 61050
+#            # Feb 1 - 61072
+#            # Mar 1 - 61100
+#            # Apr 1 - 61131
+#            # May 1 - 61161
+#            # Jun 1 - 61192
+#            # Jul 1 - 61222
+#            # Aug 1 - 61253
+#            # Sep 1 - 61284
+#            # Oct 1 - 61314
+#            # Nov 1 - 61345
+#            # Dec 1 - 61375
+#            condition: "diaSource.reliability>0.95 AND diaSource.midpointMjdTai>=61178  AND diaObject.nDiaSources>=3"
+#            order_by: "diaSource.visit"
+#            insecure: true
+
+    shaper:
+      unit: LSSTDataPointShaper
+      config:
+        fields:
+          diaSource:
+            include: [
+              "band",
+              "dec",
+              "decErr",
+              "isNegative",
+              "midpointMjdTai",
+              "psfFlux",
+              "psfFluxErr",
+              "ra",
+              "raErr",
+              "ra_dec_Cov",
+              "snr",
+              "visit",
+              "diaSourceId",
+              "templateFlux",
+              "templateFluxErr",
+              "reliability"
+              ]
+          diaForcedSource:
+            include: [
+              "band",
+              "dec",
+              "midpointMjdTai",
+              "psfFlux",
+              "psfFluxErr",
+              "ra",
+              "visit",
+              "diaForcedSourceId",
+              "diaObjectId"
+              ]
+          diaObject:
+            include: [
+              "dec",
+              "decErr",
+              "ra_dec_Cov",
+              "ra",
+              "radecMjdTai",
+              "raErr",
+              "diaObjectId",
+              "nDiaSources",
+              ]
+
+
+    directives:
+    - channel: earlyrelease_ext
+
+      filter:
+        unit: DecentVroFilter
+        on_stock_match: bypass
+        config:
+          min_reliability: 0.8
+          min_ndet: 3
+          min_ndet_snr: 5
+          min_ndet_cadence: 1
+          min_n_filters: 2
+          min_tspan: 0.5
+          max_tspan: 1000
+          min_abs_gal_lat: 12
+          gaia_rs: 1.5
+          gaia_excessnoise_sig_max: 10
+          gaia_pm_signif: 5
+          gaia_plx_signif: 5
+          gaia_veto_gmag_max: 20
+          gaia_veto_gmag_min: 9
+
+
+      ingest:
+          mux:
+            unit: LSSTMongoMuxer
+            insert:
+              point_t2:
+              - unit: T2GetDiaObject
+                config:
+                  params:
+                  - diaObjectId
+                  - simVersion
+                ingest:
+                  filter: LSSTObjFilter
+                  select: last
+                  sort: diaObjectId
+              - config: &dl_config
+                  datalab_user:
+                    label: datalab/user
+                  datalab_pwd:
+                    label: datalab/password
+                  match_radius: 1
+                  query: "SELECT
+                        ra, dec,
+                        photo_z.z_phot_median, photo_z.z_phot_mean, photo_z.z_phot_std, 
+                        photo_z.z_phot_l68, z_phot_u68, photo_z.z_spec, 
+                        tractor.type, tractor.w1_w2, tractor.w2_w3, tractor.w3_w4,
+                        tractor.dered_mag_g, tractor.dered_mag_r, tractor.dered_mag_z,
+                        tractor.dered_mag_w1, tractor.dered_mag_w2 , tractor.dered_mag_w3,
+                        tractor.dered_mag_w4, tractor.snr_g, tractor.snr_r, tractor.snr_z,
+                        tractor.snr_w1, tractor.snr_w2, tractor.snr_w3, tractor.snr_w4
+                    FROM
+                        ls_dr10.tractor as tractor
+                        LEFT JOIN ls_dr10.photo_z as photo_z on photo_z.ls_id = tractor.ls_id 
+                    WHERE
+                        't' = Q3C_RADIAL_QUERY(ra, dec,%.6f,%.6f,%.6f)"
+                ingest:
+                  filter: LSSTObjFilter
+                  select: last
+                  sort: diaObjectId
+                unit: T2LSPhotoZTap
+              - config: '%T2CatalogMatch_TDEmocracy'
+                ingest:
+                  filter: LSSTObjFilter
+                  select: last
+                  sort: diaObjectId
+                unit: T2CatalogMatch
+
+            combine:
+            - unit: LSSTT1Combiner
+              state_t2:
+              - config: &nuclear_filter_config
+                  match_dist_arcsec: 0.2
+                  t2_dependency:
+                    - config: '%T2CatalogMatch_TDEmocracy'
+                      unit: T2CatalogMatch
+                      link_override: &latest
+                        filter: LSSTObjFilter
+                        select: last
+                        sort: diaObjectId
+                    - config: *dl_config
+                      unit: T2LSPhotoZTap
+                ingest:
+                  filter: LSSTObjFilter
+                  select: last
+                  sort: diaObjectId
+                unit: T2NuclearFilter
+              - unit: T2DigestRedshifts
+                config: &digest_config
+                  max_redshift_category: 7
+                  t2_dependency:
+                  - config: '%T2CatalogMatch_TDEmocracy'
+                    link_override: *latest
+                    unit: T2CatalogMatch
+                  - config: *dl_config
+                    link_override: *latest
+                    unit: T2LSPhotoZTap
+              - unit: T2NuclearReport
+                config:
+                  t2_dependency:
+                      - config: *nuclear_filter_config
+                        unit: T2NuclearFilter
+                      - config: *digest_config
+                        unit: T2DigestRedshifts
+                  tabulator:
+                    - unit: LSSTT2Tabulator
+                      config:
+                        zp: 31.4
+                  result_adapter:
+                    unit: HopskotchAdapter
+                    config:
+                      broker: kafka.scimma.org
+                      auth:
+                        username:
+                          label: scimma/neckerja/user
+                        password:
+                          label: scimma/neckerja/password
+                      topic: Ampel-TDEmocracy.nucelar-stream-dev
+                      model: ampel.contrib.hu.model.LSSTReport.LSSTReport
+
+
+- title: Run T2s
+  unit: T2Worker
+  multiplier: 1
+  config:
+    send_beacon: false
+    raise_exc: true
+
+
+- title: PlotAllCandidates
+  unit: T3Processor
+  config:
+    raise_exc: true
+    supply:
+      unit: T3DefaultBufferSupplier
+      config:
+        select:
+          unit: T3StockSelector
+          config:
+            channel: earlyrelease_ext
+        load:
+          unit: T3SimpleDataLoader
+          config:
+            directives:
+              - STOCK
+              - T1
+              - T2DOC
+              - DATAPOINT
+            channel: earlyrelease_ext
+        #complement:
+        #- unit: LSSTCutoutImages
+        #  config:
+        #    eligible: brightest
+        #    insecure: true
+    stage:
+      unit: T3SimpleStager
+      config:
+        execute:
+          - unit: PlotNuclearFilterLightcurves
+            config:
+              out_dir: /cephfs/users/neckerja/scratch/rubicube/nuclear_candidates_june
+              save_png: false
+              include_cutouts: true
+              internal_cutout_fetch: true
+              lsst_archive_insecure: true
+              cutout_eligible: brightest
+
+              stacking: false
+              stacking_window_hours: 2.0
+
+              max_per_category: 200
+
+              calibration_indices: [170046091979391069, 170046091714625647, 170046091702566947, 170046091672682560]
+
+              tabulator:
+              - unit: LSSTT2Tabulator
+                config:
+                  zp: 31.4

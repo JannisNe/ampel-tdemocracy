@@ -1,0 +1,11 @@
+# Changes here will be overwritten by Copier
+_commit: v0.0.12
+_src_path: gh:AmpelAstro/copier-ampel
+author_email: necker@strw.leidenuniv.nl
+author_name: Jannis Necker
+plugin_description: 'Selecting candidate nuclear transients from the Rubin alert stream
+    for tde TDEmocracy project '
+plugin_name: tdemocracy
+plugin_org: AmpelAstro
+plugin_version: 0.0.1
+version_cap: <0.11

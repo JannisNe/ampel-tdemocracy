@@ -47,7 +47,9 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
     group_matches_within_arcsec: float = 0.5
 
     t2_dependency: Sequence[
-        StateT2Dependency[Literal["T2CatalogMatch", "T2LSPhotoZTap"]]
+        StateT2Dependency[
+            Literal["T2CatalogMatch", "T2LSPhotoZTap", "T2DigestRedshifts"]
+        ]
     ]
 
     tabulator: Sequence[UnitModel] = [

@@ -212,6 +212,8 @@ task:
                           label: scimma/neckerja/password
                       topic: Ampel-TDEmocracy.nucelar-stream-dev
                       model: tdemocracy.model.NuclearTransientReport
+                      path: report
+                      conditional_path: passed
                 ingest:
                   filter: LSSTObjFilter
                   select: last

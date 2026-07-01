@@ -1,4 +1,4 @@
-from ampel.contrib.hu.t2 import HopskotchAdapter
+from ampel.contrib.hu.t2.HopskotchAdapter import HopskotchAdapter
 from ampel.struct.UnitResult import UnitResult
 from ampel.util.mappings import get_by_path
 

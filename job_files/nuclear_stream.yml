@@ -173,7 +173,18 @@ task:
             combine:
             - unit: LSSTT1Combiner
               state_t2:
-              - config: &nuclear_filter_config
+              - unit: T2DigestRedshifts
+                config: &digest_config
+                  max_redshift_category: 7
+                  t2_dependency:
+                    - config: '%T2CatalogMatch_TDEmocracy'
+                      link_override: *latest
+                      unit: T2CatalogMatch
+                    - config: *dl_config
+                      link_override: *latest
+                      unit: T2LSPhotoZTap
+              - unit: T2NuclearFilter
+                config:
                   match_dist_arcsec: 0.2
                   t2_dependency:
                     - config: '%T2CatalogMatch_TDEmocracy'
@@ -184,34 +195,14 @@ task:
                         sort: diaObjectId
                     - config: *dl_config
                       unit: T2LSPhotoZTap
-                ingest:
-                  filter: LSSTObjFilter
-                  select: last
-                  sort: diaObjectId
-                unit: T2NuclearFilter
-              - unit: T2DigestRedshifts
-                config: &digest_config
-                  max_redshift_category: 7
-                  t2_dependency:
-                  - config: '%T2CatalogMatch_TDEmocracy'
-                    link_override: *latest
-                    unit: T2CatalogMatch
-                  - config: *dl_config
-                    link_override: *latest
-                    unit: T2LSPhotoZTap
-              - unit: T2NuclearReport
-                config:
-                  t2_dependency:
-                      - config: *nuclear_filter_config
-                        unit: T2NuclearFilter
-                      - config: *digest_config
-                        unit: T2DigestRedshifts
+                    - config: *digest_config
+                      unit: T2DigestRedshifts
                   tabulator:
                     - unit: LSSTT2Tabulator
                       config:
                         zp: 31.4
                   result_adapter:
-                    unit: HopskotchAdapter
+                    unit: ConditionalHopskotchAdapter
                     config:
                       broker: kafka.scimma.org
                       auth:
@@ -220,8 +211,11 @@ task:
                         password:
                           label: scimma/neckerja/password
                       topic: Ampel-TDEmocracy.nucelar-stream-dev
-                      model: ampel.contrib.hu.model.LSSTReport.LSSTReport
-
+                      model: tdemocracy.model.NuclearTransientReport
+                ingest:
+                  filter: LSSTObjFilter
+                  select: last
+                  sort: diaObjectId
 
 - title: Run T2s
   unit: T2Worker

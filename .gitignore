@@ -10,3 +10,5 @@ __pycache__
 *.swo
 .DS_Store
 .idea
+secrets.yml
+ampel_config.yml

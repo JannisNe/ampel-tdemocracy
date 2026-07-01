@@ -23,7 +23,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "ampel-interface (>=0.10.4.post2,<0.11)",
+    "tdemocracy @ git+https://github.com/JannisNe/tdemocracy.git",
     "ampel-hu-astro[ztf] @ git+https://github.com/AmpelAstro/Ampel-HU-astro.git@min-n-filters",
     "ampel-lsst @ git+https://github.com/AmpelAstro/Ampel-LSST.git@main",
     "ampel-core @ git+https://github.com/AmpelProject/Ampel-core.git",

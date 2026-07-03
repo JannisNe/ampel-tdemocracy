@@ -13,6 +13,7 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import angular_separation
 from scipy.stats import chi2
+from tdemocracy import __version__ as model_version
 from tdemocracy.model import (
     Host,
     MeanPosition,
@@ -205,6 +206,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             object=self._get_object(datapoints, compound["stock"]),
             template_fluxes=self._get_template_fluxes(datapoints),
             version=self.version,
+            model_version=model_version,
             state=compound["link"],
             mean_position=MeanPosition(
                 mean_ra=mean_ra,

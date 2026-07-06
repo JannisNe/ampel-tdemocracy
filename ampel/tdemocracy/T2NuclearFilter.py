@@ -312,9 +312,12 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
 
         report.host = Host(
             name="T2NuclearFilter",
+            primary_source=match_map["name"][best_match_id],
+            ra=float(np.degrees(match_map["ra_rad"][best_match_id])),
+            dec=float(np.degrees(match_map["dec_rad"][best_match_id])),
             redshift=digest_redshifts["ampel_z"],
             distance=dist,
-            source=matched_catalogs.tolist(),
+            sources=matched_catalogs.tolist(),
             info=type_info,
         )
 

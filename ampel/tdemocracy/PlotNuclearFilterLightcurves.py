@@ -47,6 +47,7 @@ from ampel.content.DataPoint import DataPoint
 from ampel.lsst.view.LSSTT2Tabulator import LSST_BANDPASSES
 from ampel.struct.T3Store import T3Store
 from ampel.struct.UnitResult import UnitResult
+from ampel.tdemocracy.T2NuclearFilter import NuclearFilterResult
 from ampel.tdemocracy.util.catalog_column_info import (
     get_catalog_position_unit_map,
 )
@@ -117,7 +118,7 @@ def fig_from_fluxtable(
     tnsname: str | None = None,
     fritzlink: bool = True,
     attributes: list[str] | None = None,
-    nuclear_filter_res: Mapping[str, Any] | None = None,
+    nuclear_filter_res: NuclearFilterResult | None = None,
     photz_list: list[str] | None = None,
     cutouts: Mapping[str, Mapping[str, bytes]] | None = None,
     mag_range: None | list = None,
@@ -179,12 +180,13 @@ def fig_from_fluxtable(
     sep = "------------------------"
     info.append(sep)
     if nuclear_filter_res:
-        passed = "passed" if nuclear_filter_res["passed"] else "failed"
+        passed = "passed" if nuclear_filter_res.passed else "failed"
         info.append(f"Nuclear filter: {passed}")
-        if (host_dist := nuclear_filter_res["host_dist_arcsec"]) is not None:
-            info.append(f"Host dist: {host_dist:.2f}")
+        if (host := nuclear_filter_res.report.host) is not None:
+            info.append(f"Host dist: {host.distance:.2f}")
             info.append("Types:")
-            for cat_name, cat_info in nuclear_filter_res["host_type"].items():
+            assert isinstance(host.info, dict)
+            for cat_name, cat_info in host.info.items():
                 cat_info_details = "; ".join(
                     [f"{v} ({k})" for k, v in cat_info.items()]
                 )
@@ -235,13 +237,13 @@ def fig_from_fluxtable(
         return cutout_fov
 
     # merge nuclear filter res into finder mathes
-    if nuclear_filter_res and nuclear_filter_res["host_ra"] is not None:
+    if nuclear_filter_res and (host := nuclear_filter_res.report.host) is not None:
         assert finder_matches is not None
         finder_matches.append(
             {
                 "label": "T2NuclearFilter",
-                "ra": nuclear_filter_res["host_ra"],
-                "dec": nuclear_filter_res["host_dec"],
+                "ra": host.ra,
+                "dec": host.dec,
             }
         )
 
@@ -308,7 +310,7 @@ def fig_from_fluxtable(
         cutout_fov = 10
 
     has_host = (nuclear_filter_res is not None) and (
-        nuclear_filter_res["host_ra"] is not None
+        nuclear_filter_res.report.host is not None
     )
     if not has_host:
         offset_scatter_catalog_ax.axis("off")
@@ -346,16 +348,16 @@ def fig_from_fluxtable(
     )
     if has_host:
         assert nuclear_filter_res is not None
+        host = nuclear_filter_res.report.host
+        assert host is not None
         offset_scatterplot(
             ax=offset_scatter_catalog_ax,
-            mean_ra=nuclear_filter_res["host_ra"],
-            mean_dec=nuclear_filter_res["host_dec"],
+            mean_ra=host.ra,
+            mean_dec=host.dec,
             positions=position_table,
             radius_arcsec=0.5,
         )
-        host_pos = SkyCoord(
-            nuclear_filter_res["host_ra"], nuclear_filter_res["host_dec"], unit="deg"
-        )
+        host_pos = SkyCoord(host.ra, host.dec, unit="deg")
         mean_pos = SkyCoord(ra, dec, unit="deg")
         ddra, ddec = mean_pos.spherical_offsets_to(host_pos)
         ddra_arcsec = ddra.to_value("arcsec")
@@ -2213,12 +2215,14 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     unit="deg",
                 )
 
-                nuclear_filter_res = tran_view.get_t2_body(unit="T2NuclearFilter")
+                nuclear_filter_res = NuclearFilterResult.model_validate(
+                    tran_view.get_t2_body(unit="T2NuclearFilter")
+                )
                 assert nuclear_filter_res
-                if nuclear_filter_res["host_ra"] is not None:
+                if (host := nuclear_filter_res.report.host) is not None:
                     host_pos = SkyCoord(
-                        nuclear_filter_res["host_ra"],
-                        nuclear_filter_res["host_dec"],
+                        host.ra,
+                        host.dec,
                         unit="deg",
                     )
                     host_ddra, host_ddec = source_positions.spherical_offsets_to(
@@ -2268,7 +2272,12 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     mean_pos_gr = None
                     gr_offset = None
 
-                host_type = nuclear_filter_res["host_type"] or {}
+                host_type = (
+                    nuclear_filter_res.report.host.info
+                    if nuclear_filter_res.report.host
+                    else {}
+                )
+                assert isinstance(host_type, dict)
                 collected_info.append(
                     (
                         obj_pos.ra.to_value("deg"),
@@ -2276,7 +2285,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         obj_pos.separation(mean_pos_all).to_value("arcsec"),
                         gr_offset,
                         lsst_obj["body"]["nDiaSources"],
-                        nuclear_filter_res["passed"],
+                        nuclear_filter_res.passed,
                         host_type.get("T2LSPhotoZTap", {}).get("type"),
                         host_type.get("milliquas", {}).get("broad_type"),
                         *(seps.get(f) for f in rubin_bands),
@@ -2325,7 +2334,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 cutouts = None
                 cutout_cache_key = None
 
-                passed = nuclear_filter_res["passed"]
+                passed = nuclear_filter_res.passed
                 if (passed and (n_passed >= self.max_per_category)) or (
                     (not passed) and (n_failed >= self.max_per_category)
                 ):

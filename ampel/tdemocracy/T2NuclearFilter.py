@@ -134,18 +134,21 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
     @staticmethod
     def _get_template_fluxes(datapoints: Sequence[DataPoint]) -> TemplateFluxes:
         # calculate template fluxes
-        _t = TemplateFluxes()
+        _t = {}
         for b in "ugrizy":
             band_dps = [
                 dp["body"]["templateFlux"]
                 for dp in datapoints
                 if ("templateFlux" in dp) and (dp["body"]["band"] == b)
             ]
-            median, perc5, perc95 = np.quantile(band_dps, [0.5, 0.05, 0.95]).tolist()
-            _t.__setitem__(
-                b, {"band": b, "median": median, "perc5": perc5, "perc95": perc95}
-            )
-        return _t
+            if any(band_dps):
+                median, perc5, perc95 = np.quantile(
+                    band_dps, [0.5, 0.05, 0.95]
+                ).tolist()
+                _t[b] = {"band": b, "median": median, "perc5": perc5, "perc95": perc95}
+            else:
+                _t[b] = None
+        return TemplateFluxes(**_t)
 
     def process(
         self,

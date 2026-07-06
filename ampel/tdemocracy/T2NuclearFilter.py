@@ -234,8 +234,8 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         if not matches:
             return NuclearFilterResult(
                 passed=False,
-                report=report.model_dump(),
-            )
+                report=report,
+            ).model_dump()
 
         # normalize keys
         matches = {
@@ -318,5 +318,5 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             info=type_info,
         )
 
-        result = NuclearFilterResult(passed=passed, report=report.model_dump())
-        return UnitResult(body=result, adapter=self.result_adapter)
+        result = NuclearFilterResult(passed=passed, report=report)
+        return UnitResult(body=result.model_dump(), adapter=self.result_adapter)

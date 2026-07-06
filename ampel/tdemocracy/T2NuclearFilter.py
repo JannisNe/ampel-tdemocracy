@@ -25,7 +25,7 @@ from tdemocracy.model import (
 
 from ampel.abstract.AbsTabulatedT2Unit import AbsTabulatedT2Unit
 from ampel.abstract.AbsTiedStateT2Unit import AbsTiedStateT2Unit
-from ampel.base import AmpelBaseModel
+from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.content.DataPoint import DataPoint
 from ampel.content.T1Document import T1Document
 from ampel.model.StateT2Dependency import StateT2Dependency

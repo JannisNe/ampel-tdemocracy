@@ -31,11 +31,11 @@ from ampel.content.T1Document import T1Document
 from ampel.model.StateT2Dependency import StateT2Dependency
 from ampel.model.UnitModel import UnitModel
 from ampel.struct.UnitResult import UnitResult
-from ampel.types import StockId, UBson
-from ampel.util.catalog_column_info import (
+from ampel.tdemocracy.util.catalog_column_info import (
     get_catalog_position_unit_map,
     get_type_and_redshift_columns,
 )
+from ampel.types import StockId, UBson
 from ampel.view.T2DocView import T2DocView
 
 

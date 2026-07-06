@@ -44,12 +44,12 @@ from scipy.stats import chi2, kstest
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.abstract.AbsTabulatedT2Unit import AbsTabulatedT2Unit
 from ampel.content.DataPoint import DataPoint
-from ampel.contrib.hu.util.catalog_column_info import (
-    get_catalog_position_unit_map,
-)
 from ampel.lsst.view.LSSTT2Tabulator import LSST_BANDPASSES
 from ampel.struct.T3Store import T3Store
 from ampel.struct.UnitResult import UnitResult
+from ampel.tdemocracy.util.catalog_column_info import (
+    get_catalog_position_unit_map,
+)
 from ampel.types import StockId, T3Send, UBson
 from ampel.view.TransientView import TransientView
 

@@ -106,12 +106,12 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
                 if isinstance(stock, Sequence):
                     raise NotImplementedError("Can not handle multiple stock IDs yet!")
                 try:
-                    stock_int = int(stock)  # noqa: F841
+                    stock_int = int(stock)
                 except ValueError as e:
                     raise ValueError(f"Did not understand Rubin ID {stock}!") from e
 
                 return Object(
-                    id=stock,
+                    id=stock_int,
                     source="LSST",
                     ra=float(dp["body"]["ra"]),
                     ra_err=float(dp["body"]["raErr"]),

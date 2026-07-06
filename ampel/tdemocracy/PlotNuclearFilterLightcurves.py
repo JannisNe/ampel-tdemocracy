@@ -117,7 +117,7 @@ def fig_from_fluxtable(
     tnsname: str | None = None,
     fritzlink: bool = True,
     attributes: list[str] | None = None,
-    nuclear_filter_res: dict[str, Any] | None = None,
+    nuclear_filter_res: Mapping[str, Any] | None = None,
     photz_list: list[str] | None = None,
     cutouts: Mapping[str, Mapping[str, bytes]] | None = None,
     mag_range: None | list = None,
@@ -236,6 +236,7 @@ def fig_from_fluxtable(
 
     # merge nuclear filter res into finder mathes
     if nuclear_filter_res and nuclear_filter_res["host_ra"] is not None:
+        assert finder_matches is not None
         finder_matches.append(
             {
                 "label": "T2NuclearFilter",
@@ -279,11 +280,14 @@ def fig_from_fluxtable(
         attr_ax = fig.add_subplot(gs[1, 24:32])
         attr_ax.axis("off")
 
-        cutout_fov = _plot_cutouts_and_get_fov(
-            cutouts=cutouts,
-            axes=[cutoutsci, cutouttemp, cutoutdiff],
-            cache_dir=cutout_cache_dir,
-            cache_key=cutout_cache_key or name,
+        cutout_fov = (
+            _plot_cutouts_and_get_fov(
+                cutouts=cutouts,
+                axes=[cutoutsci, cutouttemp, cutoutdiff],
+                cache_dir=cutout_cache_dir,
+                cache_key=cutout_cache_key or name,
+            )
+            or 10
         )
 
     # Layout B: Lightcurve + finder + text box (no cutouts).
@@ -303,7 +307,9 @@ def fig_from_fluxtable(
         attr_ax.axis("off")
         cutout_fov = 10
 
-    has_host = nuclear_filter_res["host_ra"] is not None
+    has_host = (nuclear_filter_res is not None) and (
+        nuclear_filter_res["host_ra"] is not None
+    )
     if not has_host:
         offset_scatter_catalog_ax.axis("off")
     render_finder_stamp(
@@ -339,6 +345,7 @@ def fig_from_fluxtable(
         labelleft=False,
     )
     if has_host:
+        assert nuclear_filter_res is not None
         offset_scatterplot(
             ax=offset_scatter_catalog_ax,
             mean_ra=nuclear_filter_res["host_ra"],
@@ -1050,7 +1057,7 @@ def render_finder_stamp(
             if os.path.isfile(cache_path):
                 cached = np.load(cache_path, allow_pickle=True)
                 stamp = cached["data"]
-                label = str(cached["label"])
+                label = str(cached["label"])  # type: str | None
             else:
                 stamp, label = get_finder_stamp(
                     ra, dec, size=size, fov_arcsec=fov_arcsec
@@ -1363,8 +1370,9 @@ def get_finder_stamp(
             if r is None:
                 continue
 
-            img = Image.open(io.BytesIO(r.content))
-            img = ImageOps.exif_transpose(img).convert("RGB")
+            img = ImageOps.exif_transpose(Image.open(io.BytesIO(r.content))).convert(
+                "RGB"
+            )
             arr = np.asarray(img).astype(float) / 255.0
 
             return arr, labels.get(hips, hips)
@@ -2183,6 +2191,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     self.logger.debug("No photopoints", extra={"stock": tran_view.id})
                     continue
 
+                assert tran_view.t0
                 lsst_objs = [
                     dp
                     for dp in tran_view.t0
@@ -2205,6 +2214,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 )
 
                 nuclear_filter_res = tran_view.get_t2_body(unit="T2NuclearFilter")
+                assert nuclear_filter_res
                 if nuclear_filter_res["host_ra"] is not None:
                     host_pos = SkyCoord(
                         nuclear_filter_res["host_ra"],
@@ -2273,6 +2283,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     )
                 )
 
+                assert tran_view.stock
                 if (self.calibration_indices is not None) and (
                     (s := tran_view.stock["stock"]) in self.calibration_indices
                 ):
@@ -2314,7 +2325,6 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 cutouts = None
                 cutout_cache_key = None
 
-                nuclear_filter_res = tran_view.get_t2_body(unit="T2NuclearFilter")
                 passed = nuclear_filter_res["passed"]
                 if (passed and (n_passed >= self.max_per_category)) or (
                     (not passed) and (n_failed >= self.max_per_category)
@@ -2416,7 +2426,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
         values[pix_ind] = count
 
         fig, ax = plt.subplots(subplot_kw={"projection": "astro degrees mollweide"})
-        ax.imshow_hpx(values, cmap="cylon")
+        ax.imshow_hpx(values, cmap="cylon")  # type: ignore
         sm = ScalarMappable(norm=Normalize(vmin=0, vmax=max(values)), cmap="cylon")
         cbar = plt.colorbar(sm, ax=ax, orientation="horizontal", pad=0.08)
         cbar.set_label("Count")
@@ -2469,7 +2479,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     chi2_values = g["host_sep"] ** 2 / err_2d_sq
                     bins = np.linspace(0, min([5, max(chi2_values)]))
                     if max(chi2_values) > 5:
-                        bins = [*list(bins), max(chi2_values)]
+                        bins = np.array([*list(bins), max(chi2_values)])
                     ax.hist(
                         chi2_values,
                         density=True,

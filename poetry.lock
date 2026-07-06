@@ -340,6 +340,37 @@ test-all = ["array-api-strict (<2.4) ; python_version < \"3.12\"", "array-api-st
 typing = ["narwhals (>=1.42.0)", "pandas-stubs (>=2.0.0)"]
 
 [[package]]
+name = "astropy-healpix"
+version = "2.0.0"
+description = "BSD-licensed HEALPix for Astropy"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "astropy_healpix-2.0.0-cp310-abi3-macosx_10_9_x86_64.whl", hash = "sha256:0957f2581f9808082daebfe2c4de63c1b53dca422b685b40fa73934ee2fed287"},
+    {file = "astropy_healpix-2.0.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:6ada84cbd02022404d64432b925c303845ada8dbeeac68103c9442714c9ba113"},
+    {file = "astropy_healpix-2.0.0-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:6bf86b2cdd9615de0031bc13b33fb72bcf085c5a2c78a6cf27c7a02b9ec05be7"},
+    {file = "astropy_healpix-2.0.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bd3614d685ec2cd629f4e2bbb0e1db625fe878dde778b335ec07ab4754809d78"},
+    {file = "astropy_healpix-2.0.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:8ffc56532822414fc6ba9b5e80b7897f98c96762d4ae69f14f5797e18946c26e"},
+    {file = "astropy_healpix-2.0.0-cp310-abi3-win_amd64.whl", hash = "sha256:788c210b970096f26e582f5bf44a24d3943ee5d9b73b3e54f815dae0d4aeecf7"},
+    {file = "astropy_healpix-2.0.0-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:fbc171fa206b14ab6ebba10c6240255a90349aa04e9e163d676aa922f5eac2cb"},
+    {file = "astropy_healpix-2.0.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:9439d926e96c10d70453c2f372c20853f27abc4d58329780c46c222de8e1a884"},
+    {file = "astropy_healpix-2.0.0-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:727588aebabb0bdf7f27aeb793a721090e9c62ab44c5dfe083c5a5ec4ad91df8"},
+    {file = "astropy_healpix-2.0.0-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:31c4f998f83e7be4245fa75a48767d7749b2f233ee61e134573106dfbe53c73c"},
+    {file = "astropy_healpix-2.0.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:3eca64fb1640dcb6b5633db73a33b2d208f64c5339a454ca38f538be3cdc0a4b"},
+    {file = "astropy_healpix-2.0.0-cp314-cp314t-win_amd64.whl", hash = "sha256:6c3ff5fb34a99571d0ebd78bd72535503fda89b778fb9aea0a49a785cdb3ec28"},
+    {file = "astropy_healpix-2.0.0.tar.gz", hash = "sha256:6ce7646dc5b1c09a7ed24b1f23d3e2fce8e3570387220d26a24487ab001b3b0b"},
+]
+
+[package.dependencies]
+astropy = ">=6.1"
+numpy = ">=2"
+
+[package.extras]
+docs = ["matplotlib", "sphinx-astropy[confv3] (>=1.11)"]
+test = ["hypothesis", "pytest-astropy"]
+
+[[package]]
 name = "astropy-iers-data"
 version = "0.2026.7.6.1.1.20"
 description = "IERS Earth Rotation and Leap Second tables for the astropy core package"
@@ -4128,4 +4159,4 @@ tests = ["coverage", "pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <4"
-content-hash = "edd0a68f92789004fae07706834113b525e8ebe6072bae0d2d6c1889b9d0d2de"
+content-hash = "f5372b168b6b263cc31790fcfab99f1877121e0e1129767f8bb28572715f427d"

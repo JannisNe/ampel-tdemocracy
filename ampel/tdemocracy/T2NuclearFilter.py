@@ -7,7 +7,7 @@
 # Last Modified By:    jannis.necker@gmail.com
 
 from collections.abc import Sequence
-from typing import Literal, TypedDict
+from typing import Literal
 
 import numpy as np
 from astropy.coordinates import SkyCoord
@@ -25,6 +25,7 @@ from tdemocracy.model import (
 
 from ampel.abstract.AbsTabulatedT2Unit import AbsTabulatedT2Unit
 from ampel.abstract.AbsTiedStateT2Unit import AbsTiedStateT2Unit
+from ampel.base import AmpelBaseModel
 from ampel.content.DataPoint import DataPoint
 from ampel.content.T1Document import T1Document
 from ampel.model.StateT2Dependency import StateT2Dependency
@@ -38,7 +39,7 @@ from ampel.util.catalog_column_info import (
 from ampel.view.T2DocView import T2DocView
 
 
-class NuclearFilterResult(TypedDict):
+class NuclearFilterResult(AmpelBaseModel):
     passed: bool
     report: NuclearTransientReport
 
@@ -147,7 +148,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
                 ).tolist()
                 _t[b] = {"band": b, "median": median, "perc5": perc5, "perc95": perc95}
             else:
-                _t[b] = None
+                _t[b] = None  # type: ignore
         return TemplateFluxes(**_t)
 
     def process(

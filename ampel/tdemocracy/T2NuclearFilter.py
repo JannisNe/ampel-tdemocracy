@@ -95,12 +95,21 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             ).iterrows("id", "source", "time", "flux", "fluxerr", "band", "zp", "zpsys")
         ]
 
-    def _get_object(self, datapoints: Sequence[DataPoint], stock: StockId) -> Object:
+    def _get_object(
+        self, datapoints: Sequence[DataPoint], stock: StockId | Sequence[StockId]
+    ) -> Object:
         # Fill object record from latest LSST_OBJ datapoint (diaObject)
         for dp in sorted(
             datapoints, key=lambda x: x["meta"][-1].get("ts", 0), reverse=True
         ):
             if "LSST_OBJ" in dp.get("tag", {}):
+                if isinstance(stock, Sequence):
+                    raise NotImplementedError("Can not handle multiple stock IDs yet!")
+                try:
+                    stock_int = int(stock)  # noqa: F841
+                except ValueError as e:
+                    raise ValueError(f"Did not understand Rubin ID {stock}!") from e
+
                 return Object(
                     id=stock,
                     source="LSST",

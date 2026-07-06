@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# File:                ampel/contrib/hu/t2/T2NuclearFilter.py
+# File:                ampel/tdemocracy/T2NuclearFilter.py
 # License:             BSD-3-Clause
 # Author:              jannis.necker@gmail.com
 # Date:                29.04.2026
-# Last Modified Date:  29.04.2026
+# Last Modified Date:  06.07.2026
 # Last Modified By:    jannis.necker@gmail.com
 
 from collections.abc import Sequence

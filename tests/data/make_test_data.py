@@ -90,3 +90,4 @@ if __name__ == "__main__":
     run_job(args.config, args.secrets)
     for i in range(3):
         export_collection(args.config, f"t{i}")
+    export_collection(args.config, "stock")

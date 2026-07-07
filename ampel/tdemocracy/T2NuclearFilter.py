@@ -54,9 +54,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         ]
     ]
 
-    tabulator: Sequence[UnitModel] = [
-        UnitModel(unit="LSSTT2Tabulator", config={"zp": 27.5})
-    ]
+    tabulator: Sequence[UnitModel] = [UnitModel(unit="LSSTT2Tabulator")]
 
     result_adapter: UnitModel | None = None
 

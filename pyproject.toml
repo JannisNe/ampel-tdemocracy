@@ -23,9 +23,9 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "tdemocracy (>=0.0.3,<0.1)",
+    "tdemocracy (>=0.0.5,<0.1)",
     "ampel-hu-astro[ztf] (>=0.10.0a24,<0.11)",
-    "ampel-lsst @ git+https://github.com/AmpelAstro/Ampel-LSST.git@main",
+    "ampel-lsst (>=0.10.1a18,<0.11)",
     "ampel-core (>=0.10.6a22,<0.11)",
     "ampel-catalogmatch (>=0.10.0a3,<0.11)",
     "lasair (>=0.1.4,<0.2.0)",

@@ -4,7 +4,8 @@ from typing import Any, BinaryIO, cast
 
 import pytest
 from bson import decode_file_iter
-from data import DATA_DIR, MONGO_PREFIX
+
+from tests.data import DATA_DIR, MONGO_PREFIX
 
 
 def get_collection_filename(collection_name: str) -> Path:

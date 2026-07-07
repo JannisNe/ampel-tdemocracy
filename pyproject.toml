@@ -64,6 +64,8 @@ filterwarnings = [
     "error",
     "ignore:pkg_resources is deprecated:DeprecationWarning",
 ]
+testpaths = "tests"
+pythonpath = "."
 
 [tool.mypy]
 namespace_packages = true

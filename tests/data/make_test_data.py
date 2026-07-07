@@ -1,13 +1,12 @@
 import argparse
-import json
 import logging
+import subprocess
 import tempfile
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
 import yaml
-from pymongo import MongoClient
 
 from ampel.cli.JobCommand import JobCommand
 
@@ -60,24 +59,24 @@ def run_job(ampel_config_path: str, secrets_file: str):
         cmd.run(args, unknown_args=())
 
 
-def get_mongo_client(ampel_config_path: str) -> MongoClient:
-    with open(ampel_config_path) as f:
-        config = yaml.safe_load(f)
-    return MongoClient(config["resource"]["mongo"])
-
-
-def get_collection_filename(collection_name: str) -> Path:
-    return DATA_DIR / f"{collection_name}.json"
-
-
 def export_collection(ampel_config_path: str, collection_name: str):
     LOGGER.info(f"Exporting collection {collection_name}")
-    col = get_mongo_client(ampel_config_path)[MONGO_PREFIX][collection_name]
-    data = list(col.find({}, {"_id": False, "expiry": False, "meta": False}))
-    fn = get_collection_filename(collection_name)
-    LOGGER.debug(f"Exporting {len(data)} documents to {fn}")
-    with fn.open("w") as f:
-        json.dump(data, f)
+    with open(ampel_config_path) as f:
+        config = yaml.safe_load(f)
+    uri = config["resource"]["mongo"]
+    cmd = [
+        "mongodump",
+        "-d",
+        MONGO_PREFIX,
+        "-c",
+        collection_name,
+        f"--uri={uri}",
+        "-o",
+        str(DATA_DIR.absolute()),
+        "--gzip",
+    ]
+    LOGGER.debug(" ".join(cmd))
+    subprocess.check_output(cmd)
 
 
 if __name__ == "__main__":

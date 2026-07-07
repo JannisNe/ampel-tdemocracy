@@ -230,10 +230,12 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
 
         # If there are no matches within self.match_dist_arcsec, return False
         if not matches:
-            return NuclearFilterResult(
-                passed=False,
-                report=report,
-            ).model_dump()
+            return UnitResult(
+                body=NuclearFilterResult(
+                    passed=False,
+                    report=report,
+                ).model_dump()
+            )
 
         # normalize keys
         matches = {

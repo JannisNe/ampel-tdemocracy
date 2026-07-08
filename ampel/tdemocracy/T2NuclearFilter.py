@@ -38,6 +38,43 @@ from ampel.tdemocracy.util.catalog_column_info import (
 from ampel.types import StockId, UBson
 from ampel.view.T2DocView import T2DocView
 
+RUBIN_ALERT_FLAGS = [
+    "centroid_flag",
+    "apFlux_flag",
+    "apFlux_flag_apertureTruncated",
+    "psfFlux_flag",
+    "psfFlux_flag_edge",
+    "psfFlux_flag_noGoodPixels",
+    "trail_flag_edge",
+    "forced_PsfFlux_flag",
+    "forced_PsfFlux_flag_edge",
+    "forced_PsfFlux_flag_noGoodPixels",
+    "shape_flag",
+    "shape_flag_no_pixels",
+    "shape_flag_not_contained",
+    "shape_flag_parent_source",
+    "pixelFlags",
+    "pixelFlags_bad",
+    "pixelFlags_cr",
+    "pixelFlags_crCenter",
+    "pixelFlags_edge",
+    "pixelFlags_nodata",
+    "pixelFlags_nodataCenter",
+    "pixelFlags_interpolated",
+    "pixelFlags_interpolatedCenter",
+    "pixelFlags_offimage",
+    "pixelFlags_saturated",
+    "pixelFlags_saturatedCenter",
+    "pixelFlags_suspect",
+    "pixelFlags_suspectCenter",
+    "pixelFlags_streak",
+    "pixelFlags_streakCenter",
+    "pixelFlags_injected",
+    "pixelFlags_injectedCenter",
+    "pixelFlags_injected_template",
+    "pixelFlags_injected_templateCenter",
+]
+
 
 class NuclearFilterResult(AmpelBaseModel):
     passed: bool
@@ -183,8 +220,10 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         good_sources = [
             dp
             for dp in datapoints
-            if ("diaSourceId" in dp["body"]) and not np.isnan(dp["body"]["raErr"])
+            if ("diaSourceId" in dp["body"])
+            and not any([dp["body"][flag] for flag in RUBIN_ALERT_FLAGS])
         ]
+
         coords = SkyCoord(
             *np.array(
                 [[dp["body"][k] for k in ["ra", "dec"]] for dp in good_sources]

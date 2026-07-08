@@ -180,13 +180,14 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             raise RuntimeError("Missing T2 dependencies: T2DigestRedshifts!")
 
         # calculate mean position and variance
+        good_sources = [
+            dp
+            for dp in datapoints
+            if ("diaSourceId" in dp["body"]) and not np.isnan(dp["body"]["raErr"])
+        ]
         coords = SkyCoord(
             *np.array(
-                [
-                    [dp["body"][k] for k in ["ra", "dec"]]
-                    for dp in datapoints
-                    if ("diaSourceId" in dp["body"])
-                ]
+                [[dp["body"][k] for k in ["ra", "dec"]] for dp in good_sources]
             ).T,
             unit="deg",
         )
@@ -194,8 +195,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         circularized_errors = np.array(
             [
                 np.sqrt(dp["body"]["raErr"] ** 2 + dp["body"]["decErr"] ** 2)
-                for dp in datapoints
-                if ("diaSourceId" in dp["body"])
+                for dp in good_sources
             ]
         )
         weights = 1 / circularized_errors

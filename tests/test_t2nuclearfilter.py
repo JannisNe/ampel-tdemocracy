@@ -112,5 +112,5 @@ def test_t2_nuclear_filter(collections, schema, mock_context):  # noqa: ARG001
         for i, (res, ref) in enumerate(zip(res_phot, ref_phot, strict=False)):
             for k, resv in res.items():
                 assert resv == pytest.approx(ref[k], rel=1e-8), (
-                    f"Epoch {i}: {k} failed!"
+                    f"Stock: {stock}, Epoch {i}: {k} failed!"
                 )

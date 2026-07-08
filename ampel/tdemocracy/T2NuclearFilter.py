@@ -79,7 +79,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
     ) -> list[PhotometricPoint]:
         return [
             PhotometricPoint(
-                id=id,
+                id=int(id),
                 source=source,
                 time=time,
                 flux=flux,

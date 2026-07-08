@@ -15,6 +15,22 @@ JOB_FILE_PATH = Path(__file__).parent.parent.parent / "job_files" / "nuclear_str
 DATA_DIR = Path(__file__).parent
 INPUT_DATA = DATA_DIR / "lsst-alerts-2026-07-05--2026-07-06-r0.8.parquet"
 MONGO_PREFIX = "nuclear_stream_test_data"
+RESULT_ADAPTER_CONFIG = (
+    "result_adapter:\n"
+    "                    unit: ConditionalHopskotchAdapter\n"
+    "                    config:\n"
+    "                      broker: kafka.scimma.org\n"
+    "                      auth:\n"
+    "                        username:\n"
+    "                          label: scimma/neckerja/user\n"
+    "                        password:\n"
+    "                          label: scimma/neckerja/password\n"
+    "                      topic: Ampel-TDEmocracy.nucelar-stream-dev\n"
+    "                      model: tdemocracy.model.NuclearTransientReport\n"
+    "                      message_path: report\n"
+    "                      conditional_path: passed\n"
+    "                "
+)
 
 
 @contextmanager
@@ -28,6 +44,7 @@ def test_job_file() -> Generator[Path]:
                     str(INPUT_DATA),
                 )
                 .replace("nucelar_stream_test_june", MONGO_PREFIX)
+                .replace(RESULT_ADAPTER_CONFIG, "")
             )
         fmod.seek(0)
         yield Path(fmod.name)

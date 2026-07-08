@@ -29,7 +29,7 @@ RESULT_ADAPTER_CONFIG = (
     "                      model: tdemocracy.model.NuclearTransientReport\n"
     "                      message_path: report\n"
     "                      conditional_path: passed\n"
-    "                "
+    "                  "
 )
 
 

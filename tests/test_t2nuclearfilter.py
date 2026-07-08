@@ -28,7 +28,7 @@ def test_t2_nuclear_filter(collections, schema, mock_context):  # noqa: ARG001
         for s in unique_stocks
     }
     dp_fltr, dp_sort, dp_slc = DPSelection(
-        filter="LSSTObjFilter", select="last", sort="diaObjectId"
+        filter="LSSTObjFilter", select="last", sort="id"
     ).tools()
     for stock, stock_links in links_in_t2.items():
         t1_doc = sorted(

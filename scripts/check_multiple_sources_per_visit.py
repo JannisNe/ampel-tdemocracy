@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import numpy as np
 from matplotlib import pyplot as plt
-from ampel.tdemocracy.util.cutout import create_stamp_plot, download_lsst_cutout
+from ampel.tdemocracy.util.cutout import create_stamp_plot, download_lsst_cutout, NO_CUTOUT
 
 from tests.conftest import load_collection
 
@@ -42,21 +42,31 @@ def plot_multiple_sources_per_visit():
     for stock, dps_list in multiple_sources.items():
         for dps in dps_list:
             mjd = dps[0]["body"]["midpointMjdTai"]
-            fig, axs = plt.subplots(nrows=len(dps), ncols=3, figsize=(15, 5 * len(dps)))
+            fig, axs = plt.subplots(nrows=len(dps), ncols=3, figsize=(15, 5 * len(dps)), sharex="all", sharey="all")
             for i, dp in enumerate(dps):
                 cutouts = download_lsst_cutout(
                     dia_source_id=dp["body"]["diaSourceId"],
                 )
-                if not cutouts:
+                if cutouts == NO_CUTOUT:
                     continue
                 for ax, st in zip(
                     axs[i], ["Science", "Template", "Difference"], strict=False
                 ):
-                    create_stamp_plot({"cutouts": cutouts}, ax, st)
+                    create_stamp_plot({"cutouts": cutouts}, ax, st, ra = dp["body"]["ra"], dec=dp["body"]["dec"])
+                    for idp in dps:
+                        x = idp["body"]["ra"]
+                        y = idp["body"]["dec"]
+                        ax.scatter(x, y)
+                        ax.annotate(idp["body"]["diaSourceId"], (x, y), xytext=(0, 2), textcoords="offset points", ha="center", va="bottom", color="white")
+                    ax.grid(ls=":")
                 axs[i][1].set_title(dp["body"]["diaSourceId"])
-
-            fig.tight_layout()
-            fig.savefig(f"./{stock}_{mjd}.pdf")
+            try:
+                fig.tight_layout()
+                fn = f"./{stock}_{mjd}.pdf"
+                print(f"Saving {fn}")
+                fig.savefig(fn)
+            except ValueError:
+                pass
             plt.close()
     return multiple_sources
 

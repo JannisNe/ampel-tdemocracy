@@ -10,7 +10,12 @@ from bson import decode_file_iter
 
 from ampel.config.builder.DisplayOptions import DisplayOptions
 from ampel.config.builder.DistConfigBuilder import DistConfigBuilder
-from tests.data import DATA_DIR, JOB_FILE_PATH, MONGO_PREFIX
+from tests.data.make_test_data import (
+    DATA_DIR,
+    JOB_FILE_PATH,
+    MONGO_PREFIX,
+    patch_schema,
+)
 
 
 @pytest.fixture(scope="session")
@@ -69,6 +74,14 @@ def collections() -> dict[str, dict]:
 
 
 @pytest.fixture
-def schema() -> dict[str, Any]:
-    with open(JOB_FILE_PATH) as f:
+def test_schema_path(tmp_path: Path) -> Path:
+    test_schema_path = tmp_path / "test_schema.yaml"
+    with open(JOB_FILE_PATH) as f, test_schema_path.open("w") as g:
+        patch_schema(f, g)
+    return test_schema_path
+
+
+@pytest.fixture
+def test_schema(test_schema_path: Path) -> dict[str, Any]:
+    with open(test_schema_path) as f:
         return yaml.safe_load(f)

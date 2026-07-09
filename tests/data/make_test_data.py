@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 from collections.abc import Generator
 from contextlib import contextmanager
+from io import TextIOWrapper
 from pathlib import Path
 
 import yaml
@@ -32,19 +33,23 @@ RESULT_ADAPTER_CONFIG = (
 )
 
 
+def patch_schema(fin: TextIOWrapper, fout: TextIOWrapper):
+    fout.write(
+        fin.read()
+        .replace(
+            "/Users/jannisnecker/Data/lsst-alerts-2026-05-24--2026-06-24-r0.8.parquet",
+            str(INPUT_DATA),
+        )
+        .replace("nucelar_stream_test_june", MONGO_PREFIX)
+        .replace(RESULT_ADAPTER_CONFIG, "")
+    )
+
+
 @contextmanager
 def test_job_file() -> Generator[Path]:
     with tempfile.NamedTemporaryFile("w") as fmod:
         with open(JOB_FILE_PATH) as f:
-            fmod.write(
-                f.read()
-                .replace(
-                    "/Users/jannisnecker/Data/lsst-alerts-2026-05-24--2026-06-24-r0.8.parquet",
-                    str(INPUT_DATA),
-                )
-                .replace("nucelar_stream_test_june", MONGO_PREFIX)
-                .replace(RESULT_ADAPTER_CONFIG, "")
-            )
+            patch_schema(f, fmod)
         fmod.seek(0)
         yield Path(fmod.name)
 

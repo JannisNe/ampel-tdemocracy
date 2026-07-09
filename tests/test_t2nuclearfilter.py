@@ -106,8 +106,8 @@ def test_t2_nuclear_filter(collections, schema, mock_context):  # noqa: ARG001
                         ), msg
 
         # check alsop photometry
-        res_phot = sorted(resb["report"]["photometry"], key=lambda x: x["time"])
-        ref_phot = sorted(reference["report"]["photometry"], key=lambda x: x["time"])
+        res_phot = sorted(resb["report"]["photometry"], key=lambda x: x["id"])
+        ref_phot = sorted(reference["report"]["photometry"], key=lambda x: x["id"])
         assert len(res_phot) == len(ref_phot)
         for i, (res, ref) in enumerate(zip(res_phot, ref_phot, strict=False)):
             for k, resv in res.items():

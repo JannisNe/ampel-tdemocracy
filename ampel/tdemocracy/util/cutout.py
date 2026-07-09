@@ -4,6 +4,7 @@ import io
 import os
 from collections.abc import Mapping
 from contextlib import suppress
+from enum import Enum
 from gzip import BadGzipFile
 
 import backoff
@@ -18,6 +19,7 @@ from matplotlib.colors import Normalize
 from scipy import ndimage
 
 ARCHIVE_URL = "https://lsst-archive.ampel.zeuthen.desy.de/api/lsst/archive/v1/"
+NO_CUTOUT = -1
 
 
 @backoff.on_exception(
@@ -37,7 +39,7 @@ ARCHIVE_URL = "https://lsst-archive.ampel.zeuthen.desy.de/api/lsst/archive/v1/"
     max_time=60,
 )
 @cachier()
-def download_lsst_cutout(dia_source_id: int) -> dict[str, bytes] | None:
+def download_lsst_cutout(dia_source_id: int) -> dict[str, bytes] | int:
     """
     Download a cutout from the LSST archive.
 
@@ -53,7 +55,7 @@ def download_lsst_cutout(dia_source_id: int) -> dict[str, bytes] | None:
     )
 
     if response.status_code == 404:
-        return None
+        return NO_CUTOUT
 
     response.raise_for_status()
     json = response.json()
@@ -201,6 +203,8 @@ def create_stamp_plot(
     ax,
     cutout_type: str,
     *,
+    ra: float | None = None,
+    dec: float | None = None,
     cache_dir: str | None = None,
     cache_key: str | None = None,
 ) -> float | None:
@@ -257,14 +261,17 @@ def create_stamp_plot(
         ax.set_title(cutout_type, fontdict={"fontsize": "small"})
         return cutout_fov
 
+    ext = (ra - cutout_fov / 2, dec - cutout_fov / 2, cutout_fov, cutout_fov) if ra and dec else None
     ax.imshow(
         data_,
         norm=Normalize(*np.percentile(data_[finite2], [0.5, 99.5])),
         aspect="equal",
         cmap="viridis",
         origin="lower",
+        extent=ext,
     )
-    ax.set_xticks([])
-    ax.set_yticks([])
+    if not ext:
+        ax.set_xticks([])
+        ax.set_yticks([])
     ax.set_title(cutout_type, fontdict={"fontsize": "small"})
     return cutout_fov

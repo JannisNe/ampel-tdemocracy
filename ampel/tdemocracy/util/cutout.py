@@ -17,7 +17,7 @@ from cachier import cachier
 from matplotlib.colors import Normalize
 from scipy import ndimage
 
-ARCHIVE_URL = "https://ampel-dev.ia.zeuthen.desy.de/api/lsst/archive/v1/"
+ARCHIVE_URL = "https://lsst-archive.ampel.zeuthen.desy.de/api/lsst/archive/v1/"
 
 
 @backoff.on_exception(
@@ -36,7 +36,7 @@ ARCHIVE_URL = "https://ampel-dev.ia.zeuthen.desy.de/api/lsst/archive/v1/"
     ),
     max_time=60,
 )
-@cachier
+@cachier()
 def download_lsst_cutout(dia_source_id: int) -> dict[str, bytes] | None:
     """
     Download a cutout from the LSST archive.

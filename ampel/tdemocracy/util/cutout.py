@@ -260,7 +260,8 @@ def create_stamp_plot(
         ax.set_title(cutout_type, fontdict={"fontsize": "small"})
         return cutout_fov
 
-    ext = (ra - cutout_fov / 2, dec - cutout_fov / 2, cutout_fov, cutout_fov) if ra and dec else None
+    fov_deg = cutout_fov / 3600 / 2
+    ext = (ra-fov_deg, ra+fov_deg, dec-fov_deg, dec+fov_deg) if ra and dec else None
     ax.imshow(
         data_,
         norm=Normalize(*np.percentile(data_[finite2], [0.5, 99.5])),

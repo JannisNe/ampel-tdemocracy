@@ -11,9 +11,9 @@ from ampel.util.mappings import get_by_path
 from ampel.view.T2DocView import T2DocView
 
 
-def test_t2_nuclear_filter(collections, schema, mock_context):  # noqa: ARG001
+def test_t2_nuclear_filter(collections, test_schema, mock_context):  # noqa: ARG001
     mda = get_by_path(
-        schema,
+        test_schema,
         "task.0.config.directives.0.ingest.mux.combine.0.state_t2.1.config.match_dist_arcsec",
     )
     logger = AmpelLogger.get_logger(console=dict(level=DEBUG))

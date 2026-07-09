@@ -4,7 +4,6 @@ import io
 import os
 from collections.abc import Mapping
 from contextlib import suppress
-from enum import Enum
 from gzip import BadGzipFile
 
 import backoff

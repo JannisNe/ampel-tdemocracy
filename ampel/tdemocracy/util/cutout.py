@@ -261,7 +261,11 @@ def create_stamp_plot(
         return cutout_fov
 
     fov_deg = cutout_fov / 3600 / 2
-    ext = (ra-fov_deg, ra+fov_deg, dec-fov_deg, dec+fov_deg) if ra and dec else None
+    ext = (
+        (ra - fov_deg, ra + fov_deg, dec - fov_deg, dec + fov_deg)
+        if ra and dec
+        else None
+    )
     ax.imshow(
         data_,
         norm=Normalize(*np.percentile(data_[finite2], [0.5, 99.5])),

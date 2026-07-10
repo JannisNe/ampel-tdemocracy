@@ -48,7 +48,9 @@ def test_filtering(
             break
         if filter_inst.process(alert):
             for dp in shaper.process(alert.datapoints, alert.stock):
-                assert dp["id"] in dp_ids
+                assert dp["id"] in dp_ids, (
+                    f"Error for alert {alert.id} of {alert.stock}"
+                )
             passed_alerts.append(alert.id)
 
-    assert all([sid in passed_alerts for sid in passed_alerts])
+    assert all([sid in passed_alerts for sid in dp_ids])

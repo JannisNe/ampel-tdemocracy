@@ -70,7 +70,7 @@ def test_filtering(
                     )
 
                     raise AssertionError(
-                        f"Error for alert {alert.id} of {alert.stock}, now hash is {h}, from shaper: {dp['id']}, manual: {h_from_t0}"
+                        f"Error for alert {alert.id} of {alert.stock}, now hash is {h}, from shaper: {dp['id']}, manual: {h_from_t0}, shaper.digest_size: {shaper.digest_size}"
                     )
             passed_alerts.append(alert.id)
 

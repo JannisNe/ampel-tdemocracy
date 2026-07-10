@@ -10,16 +10,71 @@ from ampel.tdemocracy.T2NuclearFilter import T2NuclearFilter
 from ampel.util.mappings import get_by_path
 from ampel.view.T2DocView import T2DocView
 
+REF_T2_DEPENDENCY = [
+    {
+        "config": "%T2CatalogMatch_TDEmocracy",
+        "unit": "T2CatalogMatch",
+        "link_override": {
+            "filter": "LSSTObjFilter",
+            "select": "last",
+            "sort": "diaObjectId",
+        },
+    },
+    {
+        "config": {
+            "datalab_user": {"label": "datalab/user"},
+            "datalab_pwd": {"label": "datalab/password"},
+            "match_radius": 1,
+            "query": "SELECT ra, dec, photo_z.z_phot_median, photo_z.z_phot_mean, photo_z.z_phot_std, photo_z.z_phot_l68, z_phot_u68, photo_z.z_spec, tractor.type, tractor.w1_w2, tractor.w2_w3, tractor.w3_w4, tractor.dered_mag_g, tractor.dered_mag_r, tractor.dered_mag_z, tractor.dered_mag_w1, tractor.dered_mag_w2 , tractor.dered_mag_w3, tractor.dered_mag_w4, tractor.snr_g, tractor.snr_r, tractor.snr_z, tractor.snr_w1, tractor.snr_w2, tractor.snr_w3, tractor.snr_w4 FROM ls_dr10.tractor as tractor LEFT JOIN ls_dr10.photo_z as photo_z on photo_z.ls_id = tractor.ls_id WHERE 't' = Q3C_RADIAL_QUERY(ra, dec,%.6f,%.6f,%.6f)",
+        },
+        "unit": "T2LSPhotoZTap",
+    },
+    {
+        "config": {
+            "max_redshift_category": 7,
+            "t2_dependency": [
+                {
+                    "config": "%T2CatalogMatch_TDEmocracy",
+                    "link_override": {
+                        "filter": "LSSTObjFilter",
+                        "select": "last",
+                        "sort": "diaObjectId",
+                    },
+                    "unit": "T2CatalogMatch",
+                },
+                {
+                    "config": {
+                        "datalab_user": {"label": "datalab/user"},
+                        "datalab_pwd": {"label": "datalab/password"},
+                        "match_radius": 1,
+                        "query": "SELECT ra, dec, photo_z.z_phot_median, photo_z.z_phot_mean, photo_z.z_phot_std, photo_z.z_phot_l68, z_phot_u68, photo_z.z_spec, tractor.type, tractor.w1_w2, tractor.w2_w3, tractor.w3_w4, tractor.dered_mag_g, tractor.dered_mag_r, tractor.dered_mag_z, tractor.dered_mag_w1, tractor.dered_mag_w2 , tractor.dered_mag_w3, tractor.dered_mag_w4, tractor.snr_g, tractor.snr_r, tractor.snr_z, tractor.snr_w1, tractor.snr_w2, tractor.snr_w3, tractor.snr_w4 FROM ls_dr10.tractor as tractor LEFT JOIN ls_dr10.photo_z as photo_z on photo_z.ls_id = tractor.ls_id WHERE 't' = Q3C_RADIAL_QUERY(ra, dec,%.6f,%.6f,%.6f)",
+                    },
+                    "link_override": {
+                        "filter": "LSSTObjFilter",
+                        "select": "last",
+                        "sort": "diaObjectId",
+                    },
+                    "unit": "T2LSPhotoZTap",
+                },
+            ],
+        },
+        "unit": "T2DigestRedshifts",
+    },
+]
+
 
 def test_t2_nuclear_filter(collections, test_schema, mock_context):  # noqa: ARG001
-    mda = get_by_path(
+    t2_config = get_by_path(
         test_schema,
-        "task.0.config.directives.0.ingest.mux.combine.0.state_t2.1.config.match_dist_arcsec",
+        "task.0.config.directives.0.ingest.mux.combine.0.state_t2.1.config",
     )
+    # remove t2_dependencies, they are already included in the test data
+    assert t2_config["t2_dependency"] == REF_T2_DEPENDENCY, (
+        "Catalog matching config changed and can not be tested!"
+    )
+    t2_config["t2_dependency"] = []
     logger = AmpelLogger.get_logger(console=dict(level=DEBUG))
-    t2_nuclear_filter = T2NuclearFilter(
-        t2_dependency=[], match_dist_arcsec=mda, logger=logger
-    )
+    t2_nuclear_filter = T2NuclearFilter(logger=logger, **t2_config)
     unique_stocks = [d["stock"] for d in collections["stock"]]
     links_in_t2 = {
         s: np.unique(

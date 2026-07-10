@@ -1,5 +1,7 @@
 import json
+import sys
 from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -9,6 +11,8 @@ from ampel.tdemocracy.util.cutout import (
     create_stamp_plot,
     download_lsst_cutout,
 )
+
+sys.path.append(str(Path(__file__).parent.parent.resolve().absolute()))
 from tests.conftest import load_collection
 
 
@@ -96,6 +100,14 @@ def plot_multiple_sources_per_visit():
 
 
 if __name__ == "__main__":
-    multiple_sources = plot_multiple_sources_per_visit()
+    multiple_sources = find_multiple_sources_per_visit()
     with open("mutliple_sources_per_visit.json", "w") as f:
         json.dump(multiple_sources, f)
+    visits = set(
+        dp["body"]["visit"]
+        for dpslist in multiple_sources.values()
+        for dps in dpslist
+        for dp in dps
+    )
+    print(f"Found {len(visits)} visits")  # noqa: T201
+    print(f"from {min(visits)} to {max(visits)}")  # noqa: T201

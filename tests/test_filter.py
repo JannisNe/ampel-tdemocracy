@@ -23,6 +23,9 @@ def test_filtering(
         sub_type=AbsAlertFilter,
         logger=logger,
     )
+    assert filter_inst.min_reliability >= 0.8, (
+        "Test data only contains alerts with reliability >= 0.8! Lower values can not be verified!"
+    )
 
     supplier_model = UnitModel(**test_schema["task"][0]["config"]["supplier"])
     supplier = AuxUnitRegister.new_unit(model=supplier_model, sub_type=AbsAlertSupplier)

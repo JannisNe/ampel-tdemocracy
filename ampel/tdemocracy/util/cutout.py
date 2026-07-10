@@ -260,6 +260,7 @@ def create_stamp_plot(
         ax.set_title(cutout_type, fontdict={"fontsize": "small"})
         return cutout_fov
 
+    assert cutout_fov is not None
     fov_deg = cutout_fov / 3600 / 2
     ext = (
         (ra - fov_deg, ra + fov_deg, dec - fov_deg, dec + fov_deg)

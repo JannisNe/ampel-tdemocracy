@@ -3,8 +3,12 @@ from collections import defaultdict
 
 import numpy as np
 from matplotlib import pyplot as plt
-from ampel.tdemocracy.util.cutout import create_stamp_plot, download_lsst_cutout, NO_CUTOUT
 
+from ampel.tdemocracy.util.cutout import (
+    NO_CUTOUT,
+    create_stamp_plot,
+    download_lsst_cutout,
+)
 from tests.conftest import load_collection
 
 
@@ -32,7 +36,7 @@ def find_multiple_sources_per_visit():
             multiple_sources[int(stock)] = multiple_source_per_visit
 
     print(f"Found {len(multiple_sources)} objects with multiple sources per visit")  # noqa: T201
-    max_n_sources = max([len(iv)  for v in multiple_sources.values() for iv in v])
+    max_n_sources = max([len(iv) for v in multiple_sources.values() for iv in v])
     print(f"Up to {max_n_sources} sources per visit")  # noqa: T201
     return multiple_sources
 
@@ -42,7 +46,13 @@ def plot_multiple_sources_per_visit():
     for stock, dps_list in multiple_sources.items():
         for dps in dps_list:
             mjd = dps[0]["body"]["midpointMjdTai"]
-            fig, axs = plt.subplots(nrows=len(dps), ncols=3, figsize=(15, 5 * len(dps)), sharex="all", sharey="all")
+            fig, axs = plt.subplots(
+                nrows=len(dps),
+                ncols=3,
+                figsize=(15, 5 * len(dps)),
+                sharex="all",
+                sharey="all",
+            )
             for i, dp in enumerate(dps):
                 cutouts = download_lsst_cutout(
                     dia_source_id=dp["body"]["diaSourceId"],
@@ -52,23 +62,38 @@ def plot_multiple_sources_per_visit():
                 for ax, st in zip(
                     axs[i], ["Science", "Template", "Difference"], strict=False
                 ):
-                    create_stamp_plot({"cutouts": cutouts}, ax, st, ra = dp["body"]["ra"], dec=dp["body"]["dec"])
+                    create_stamp_plot(
+                        {"cutouts": cutouts},
+                        ax,
+                        st,
+                        ra=dp["body"]["ra"],
+                        dec=dp["body"]["dec"],
+                    )
                     for idp in dps:
                         x = idp["body"]["ra"]
                         y = idp["body"]["dec"]
                         ax.scatter(x, y)
-                        ax.annotate(idp["body"]["diaSourceId"], (x, y), xytext=(0, 2), textcoords="offset points", ha="center", va="bottom", color="white")
+                        ax.annotate(
+                            idp["body"]["diaSourceId"],
+                            (x, y),
+                            xytext=(0, 2),
+                            textcoords="offset points",
+                            ha="center",
+                            va="bottom",
+                            color="white",
+                        )
                     ax.grid(ls=":")
                 axs[i][1].set_title(dp["body"]["diaSourceId"])
             try:
                 fig.tight_layout()
                 fn = f"./{stock}_{mjd}.pdf"
-                print(f"Saving {fn}")
+                print(f"Saving {fn}")  # noqa: T201
                 fig.savefig(fn)
             except ValueError:
                 pass
             plt.close()
     return multiple_sources
+
 
 if __name__ == "__main__":
     multiple_sources = plot_multiple_sources_per_visit()

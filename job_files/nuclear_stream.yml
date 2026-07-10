@@ -143,9 +143,12 @@ task:
         on_stock_match: bypass
         config:
           min_reliability: 0.8
+          min_reliability_per_source: 0.8
+          check_flags: 'all'
+          check_flags_per_source: 'all'
           min_ndet: 10
           min_ndet_snr: 5
-          min_ndet_cadence: 1
+          min_ndet_cadence: 0.05
           min_n_filters: 2
           min_tspan: 5
           max_tspan: 1000
@@ -235,6 +238,7 @@ task:
                     - unit: LSSTT2Tabulator
                       config:
                         zp: 31.4
+                        tags: ["LSST_DP", "LSST_FP"]
                   result_adapter:
                     unit: ConditionalHopskotchAdapter
                     config:

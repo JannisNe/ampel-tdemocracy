@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "tdemocracy (>=0.0.5,<0.1)",
-    "ampel-hu-astro[ztf] (>=0.10.0a24,<0.11)",
+    "ampel-hu-astro[ztf] @ git+https://github.com/AmpelAstro/Ampel-HU-astro.git@flags-and-per-source-filtering",
     "ampel-lsst (>=0.10.1a18,<0.11)",
     "ampel-core (>=0.10.6a22,<0.11)",
     "ampel-catalogmatch (>=0.10.0a3,<0.11)",
@@ -66,7 +66,6 @@ filterwarnings = [
     "ignore:pkg_resources is deprecated:DeprecationWarning",
 ]
 testpaths = "tests"
-pythonpath = "."
 
 [tool.mypy]
 namespace_packages = true

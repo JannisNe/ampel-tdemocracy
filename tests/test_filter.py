@@ -1,3 +1,5 @@
+from bson import encode
+
 from ampel.abstract.AbsAlertFilter import AbsAlertFilter
 from ampel.abstract.AbsAlertSupplier import AbsAlertSupplier
 from ampel.base.AuxUnitRegister import AuxUnitRegister
@@ -7,6 +9,14 @@ from ampel.lsst.ingest.LSSTDataPointShaper import LSSTDataPointShaper
 from ampel.model.AlertConsumerModel import AlertConsumerModel
 from ampel.model.ingest.FilterModel import FilterModel
 from ampel.model.UnitModel import UnitModel
+from ampel.util.hash import hash_payload
+
+
+def shaper_hash(d: dict) -> bytes:
+    return hash_payload(
+        encode(dict(sorted(d["body"].items()))),
+        size=-8 * 8,
+    )
 
 
 def test_filtering(
@@ -48,9 +58,20 @@ def test_filtering(
             break
         if filter_inst.process(alert):
             for dp in shaper.process(alert.datapoints, alert.stock):
-                assert dp["id"] in dp_ids, (
-                    f"Error for alert {alert.id} of {alert.stock}"
-                )
+                if dp["id"] not in dp_ids:
+                    h = shaper_hash(dp)
+                    h_from_t0 = shaper_hash(
+                        next(
+                            idp
+                            for idp in collections["t0"][alert.stock]
+                            if idp["body"].get("diaSourceId")
+                            == idp["body"]["diaSourceId"]
+                        )
+                    )
+
+                    raise AssertionError(
+                        f"Error for alert {alert.id} of {alert.stock}, now hash is {h}, from shaper: {dp['id']}, manual: {h_from_t0}"
+                    )
             passed_alerts.append(alert.id)
 
     assert all([sid in passed_alerts for sid in dp_ids])

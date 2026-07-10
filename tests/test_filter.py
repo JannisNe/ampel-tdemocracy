@@ -52,7 +52,7 @@ def test_filtering(
     )
     dp_ids = set([dp["id"] for dps in collections["t0"].values() for dp in dps])
 
-    passed_alerts = []
+    passed_dps = []
     for ctr, alert in enumerate(supplier):
         if ctr > iter_max:
             break
@@ -72,6 +72,6 @@ def test_filtering(
                     raise AssertionError(
                         f"Error for alert {alert.id} of {alert.stock}, now hash is {h}, from shaper: {dp['id']}, manual: {h_from_t0}, shaper.digest_size: {shaper.digest_size}"
                     )
-            passed_alerts.append(alert.id)
+                passed_dps.append(dp["id"])
 
-    assert all([sid in passed_alerts for sid in dp_ids])
+    assert all([sid in passed_dps for sid in dp_ids])

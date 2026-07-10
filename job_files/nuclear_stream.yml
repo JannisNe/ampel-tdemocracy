@@ -20,6 +20,7 @@ task:
 
   unit: AlertConsumer
   config:
+    iter_max: 1000000
     compiler_opts: LSSTCompilerOptions
     supplier:
       unit: LSSTAlertSupplier

@@ -84,6 +84,7 @@ class NuclearFilterResult(AmpelBaseModel):
 class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
     match_dist_arcsec: float
     group_matches_within_arcsec: float = 0.5
+    min_reliability: float = 0.8
 
     t2_dependency: Sequence[
         StateT2Dependency[
@@ -216,13 +217,34 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         if not digest_redshifts:
             raise RuntimeError("Missing T2 dependencies: T2DigestRedshifts!")
 
-        # calculate mean position and variance
+        # --- select reliable data --- #
+
+        # exclude flagged visits or in period with duplicated data
+        bad_visits = set(
+            visit
+            for dp in datapoints
+            if ((visit := dp["body"].get("visit")) is not None)
+            and (
+                any([dp["body"].get(flag) for flag in RUBIN_ALERT_FLAGS])
+                or ((visit > 2026021900000) and (visit < 2026022400000))
+            )
+        )
         good_sources = [
             dp
             for dp in datapoints
             if ("diaSourceId" in dp["body"])
-            and not any([dp["body"][flag] for flag in RUBIN_ALERT_FLAGS])
+            and (dp["body"]["visit"] not in bad_visits)
+            and dp["body"]["reliability"] >= self.min_reliability
         ]
+        good_forced_sources = [
+            dp
+            for dp in datapoints
+            if ("diaForcedSourceId" in dp["body"])
+            and (dp["body"]["visit"] not in bad_visits)
+        ]
+        good_datapoints = good_sources + good_forced_sources
+
+        # --- calculate mean position and variance --- #
 
         coords = SkyCoord(
             *np.array(
@@ -252,9 +274,9 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         mean_dec = mean_pos.dec.to_value("deg")
 
         report = NuclearTransientReport(
-            photometry=self._get_photometric_points(datapoints),
+            photometry=self._get_photometric_points(good_datapoints),
             object=self._get_object(datapoints, compound["stock"]),
-            template_fluxes=self._get_template_fluxes(datapoints),
+            template_fluxes=self._get_template_fluxes(good_datapoints),
             version=self.version,
             model_version=model_version,
             state=compound["link"],

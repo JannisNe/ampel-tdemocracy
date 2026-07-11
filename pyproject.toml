@@ -34,6 +34,7 @@ dependencies = [
     "hop-client (>=0.12.1,<0.13.0)",
     "astropy-healpix (>=2.0.0,<3.0.0)",
     "cachier (>=4.2.0,<5.0.0)",
+    "ligo-skymap (>=2.5.4,<3.0.0)",
 ]
 
 [dependency-groups]

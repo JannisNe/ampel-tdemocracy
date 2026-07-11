@@ -53,6 +53,8 @@ from ampel.tdemocracy.util.catalog_column_info import (
 )
 from ampel.types import StockId, T3Send, UBson
 from ampel.view.TransientView import TransientView
+import ligo.skymap.plot
+
 
 # Keys as provided by tabulators
 BANDPASSES = {
@@ -1446,7 +1448,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
     cutout_fallback_tries: int = 2
     cutout_fallback_min_separation_hours: float = 15.0
     lsst_archive_insecure: bool = True
-    lsst_archive_url: str = "https://ampel-dev.ia.zeuthen.desy.de/api/lsst/archive/v1/"
+    lsst_archive_url: str = "https://lsst-archive.ampel.zeuthen.desy.de/api/lsst/archive/v1/"
     ztf_archive_url: str | None = None
 
     fritzlink: bool = True

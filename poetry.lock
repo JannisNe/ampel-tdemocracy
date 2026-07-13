@@ -73,14 +73,14 @@ tenacity = ">=9.1.2,<10.0.0"
 
 [[package]]
 name = "ampel-core"
-version = "0.10.6a22"
+version = "0.10.6a23"
 description = "Alice in Modular Provenance-Enabled Land"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "ampel_core-0.10.6a22-py3-none-any.whl", hash = "sha256:d7ce05e28e046fce270e2514bd17e9d17f5ef1c8b69676a83d0433d2a9ac7746"},
-    {file = "ampel_core-0.10.6a22.tar.gz", hash = "sha256:6a088d62564930cc822bb67431ff6d839e6a7bb7f1bbd540acbcb79642c83d53"},
+    {file = "ampel_core-0.10.6a23-py3-none-any.whl", hash = "sha256:5f1f166ae7737454316b5e68343838c9c6a2111ac0966848f0696e38fdab2461"},
+    {file = "ampel_core-0.10.6a23.tar.gz", hash = "sha256:ae1d12f64385cac00d70b48d1eb2263fbe56840c9c09eeabfcce40e35bbffce2"},
 ]
 
 [package.dependencies]
@@ -5072,4 +5072,4 @@ tests = ["coverage", "pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <4"
-content-hash = "72997251b39beb33ef1d36c295ba4e07260f203fa61def6d105f8900e0cf48ad"
+content-hash = "eabc7f2bda51a62ca6e47f71908f083b8aa2f205773a6082725a0c44874722a8"

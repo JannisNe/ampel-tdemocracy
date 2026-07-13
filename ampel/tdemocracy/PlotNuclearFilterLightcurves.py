@@ -53,6 +53,7 @@ from ampel.tdemocracy.util.catalog_column_info import (
 )
 from ampel.types import StockId, T3Send, UBson
 from ampel.view.TransientView import TransientView
+from ligo.skymap import plot
 
 # Keys as provided by tabulators
 BANDPASSES = {
@@ -160,7 +161,7 @@ def fig_from_fluxtable(
     raw_fluxtable = fluxtable  # keep for background plotting
     if stacking:
         fluxtable = stack_fluxtable_rolling(
-            fluxtable,
+            fluxtable[fluxtable["selected"]],
             window_hours=stacking_window_hours,
         )
 
@@ -202,11 +203,13 @@ def fig_from_fluxtable(
 
     info.append(sep)
     info.append("band   template [nJy]    reliability")
+    sel_pos = position_table["selected"]
     for band in np.unique(position_table["band"]):
-        pt = position_table[position_table["band"] == band]
-        fq = np.quantile(pt["template_flux"], [0.5, 0.05, 0.95])
-        rq = np.quantile(pt["reliability"], [0.5, 0.05, 0.95])
-        info.append(f"{band}  {fq[0]:14.2f}    {rq[0]:5.2f}")
+        pt = position_table[(position_table["band"] == band) & sel_pos]
+        if len(pt)> 0:
+            fq = np.quantile(pt["template_flux"], [0.5, 0.05, 0.95])
+            rq = np.quantile(pt["reliability"], [0.5, 0.05, 0.95])
+            info.append(f"{band}  {fq[0]:14.2f}    {rq[0]:5.2f}")
 
     fig = plt.figure(figsize=(10, 7.9))
     lc_ax3 = None
@@ -433,6 +436,8 @@ def fig_from_fluxtable(
         lc_ax1.set_ylim((np.max(mag_range), np.min(mag_range)))
 
     # Plot points and upper limits per band
+    selm = fluxtable["selected"]
+    fp_m = fluxtable["source"] == "LSST_FP"
     for fid in BANDPASSES:
         # Background: raw points (if stacking)
         if stacking and raw_fluxtable is not None:
@@ -467,39 +472,72 @@ def fig_from_fluxtable(
                 )
 
         # Foreground: (possibly stacked) points
-        tempTab = fluxtable[fluxtable["band"] == fid]
-        if len(tempTab) > 0:
-            lc_ax1.errorbar(
-                tempTab["time"],
-                tempTab["mag"],
-                yerr=[tempTab["magerrmin"], tempTab["magerrmax"]],
-                color=BANDPASSES[fid]["c"],
-                fmt=".",
-                markersize=9,
-                label=BANDPASSES[fid]["label"],
-                mec="black",
-                mew=0.5,
-                zorder=2,
-            )
-            lc_flux_ax.errorbar(
-                tempTab["time"],
-                tempTab["flux"],
-                yerr=tempTab["fluxerr"],
-                color=BANDPASSES[fid]["c"],
-                fmt=".",
-                markersize=9,
-                mec="black",
-                mew=0.5,
-                zorder=2,
-            )
+
+        bandm = fluxtable["band"] == fid
+
+        for mec, fpm in zip(["none", "black"], [~fp_m, fp_m]):
+
+            temp_tab_sel = fluxtable[bandm & selm & fpm]
+            if len(temp_tab_sel) > 0:
+                lc_ax1.errorbar(
+                    temp_tab_sel["time"],
+                    temp_tab_sel["mag"],
+                    yerr=[temp_tab_sel["magerrmin"], temp_tab_sel["magerrmax"]],
+                    color=BANDPASSES[fid]["c"],
+                    fmt=".",
+                    markersize=9,
+                    label=BANDPASSES[fid]["label"],
+                    mec=mec,
+                    mew=0.5,
+                    zorder=2,
+                )
+                lc_flux_ax.errorbar(
+                    temp_tab_sel["time"],
+                    temp_tab_sel["flux"],
+                    yerr=temp_tab_sel["fluxerr"],
+                    color=BANDPASSES[fid]["c"],
+                    fmt=".",
+                    markersize=9,
+                    mec=mec,
+                    mew=0.5,
+                    zorder=2,
+                )
+
+            temp_tab_unsel = fluxtable[bandm & ~selm & fpm]
+            if len(temp_tab_unsel) > 0:
+                lc_ax1.errorbar(
+                    temp_tab_sel["time"],
+                    temp_tab_sel["mag"],
+                    yerr=[temp_tab_sel["magerrmin"], temp_tab_sel["magerrmax"]],
+                    color=BANDPASSES[fid]["c"],
+                    fmt="x",
+                    markersize=9,
+                    label=BANDPASSES[fid]["label"],
+                    mec=mec,
+                    mew=0.5,
+                    zorder=2,
+                    alpha=0.6
+                )
+                lc_flux_ax.errorbar(
+                    temp_tab_sel["time"],
+                    temp_tab_sel["flux"],
+                    yerr=temp_tab_sel["fluxerr"],
+                    color=BANDPASSES[fid]["c"],
+                    fmt="x",
+                    markersize=9,
+                    mec=mec,
+                    mew=0.5,
+                    zorder=2,
+                    alpha=0.6
+                )
 
         # Upper limits remain unchanged (typically not stacked)
         if ztfulims is not None:
-            tempTab = ztfulims[ztfulims["band"] == fid]
-            if len(tempTab) > 0:
+            temp_tab_sel = ztfulims[ztfulims["band"] == fid]
+            if len(temp_tab_sel) > 0:
                 lc_ax1.scatter(
-                    tempTab["time"],
-                    tempTab["diffmaglim"],
+                    temp_tab_sel["time"],
+                    temp_tab_sel["diffmaglim"],
                     c=BANDPASSES[fid]["c"],
                     marker="v",
                     s=20.0,
@@ -967,31 +1005,31 @@ def offset_scatterplot(
 
     for b in np.unique(positions["band"]):
         bm = positions["band"] == b
-        fm = positions["flux"] > 0
+        sm = positions["selected"]
         ax.errorbar(
-            dra[bm & fm],
-            ddec[bm & fm],
-            xerr=positions["raErr"][bm & fm] * 3600,
-            yerr=positions["decErr"][bm & fm] * 3600,
-            fmt=".",
-            c=BANDPASSES[b]["c"],
-            zorder=10,
-            elinewidth=0.5,
-            alpha=0.4,
-            mec="none",
-            ms=1.5,
-        )
-        ax.errorbar(
-            dra[bm & ~fm],
-            ddec[bm & ~fm],
-            xerr=positions["raErr"][bm & ~fm] * 3600,
-            yerr=positions["decErr"][bm & ~fm] * 3600,
+            dra[bm & sm],
+            ddec[bm & sm],
+            xerr=positions["raErr"][bm & sm] * 3600,
+            yerr=positions["decErr"][bm & sm] * 3600,
             fmt=".",
             c=BANDPASSES[b]["c"],
             zorder=10,
             elinewidth=0.5,
             alpha=0.4,
             mec="k",
+            ms=1.5,
+        )
+        ax.errorbar(
+            dra[bm & ~sm],
+            ddec[bm & ~sm],
+            xerr=positions["raErr"][bm & ~sm] * 3600,
+            yerr=positions["decErr"][bm & ~sm] * 3600,
+            fmt="x",
+            c=BANDPASSES[b]["c"],
+            zorder=10,
+            elinewidth=0.5,
+            alpha=0.2,
+            mec="none",
             ms=1.5,
         )
     ax.set_aspect("equal")
@@ -2187,8 +2225,15 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             PdfPages(self._out_dir / "nuclear_filter_failed.pdf") as failed_pdf,
         ):
             for tran_view in gen:
+
                 if (self.max_iter is not None) and (n_iter > self.max_iter):
                     break
+
+                nuclear_filter_res = NuclearFilterResult.model_validate(
+                    tran_view.get_t2_body(unit="T2NuclearFilter")
+                )
+                assert nuclear_filter_res
+                selected_source_ids = set(pp.id for pp in nuclear_filter_res.report.photometry)
 
                 photopoints = self._get_photopoints_any_id(tran_view)
                 if not photopoints:
@@ -2210,17 +2255,21 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 sources = [dp for dp in tran_view.t0 if ("diaSourceId" in dp["body"])]
                 assert len(sources) >= lsst_obj["body"]["nDiaSources"]
 
-                sncosmo_table = self.get_flux_table(photopoints)
+                # get all DPs
+                self._tab_engines[0]._tag_priority = {"LSST_DP": 1}
+                dps_sncosmo_table = self.get_flux_table(photopoints)
+                # get all FPs
+                self._tab_engines[0]._tag_priority = {"LSST_FP": 1}
+                fps_sncosmo_table = self.get_flux_table(photopoints)
+                sncosmo_table = vstack([dps_sncosmo_table, fps_sncosmo_table])
+                assert all(np.isin(list(selected_source_ids), sncosmo_table["id"]))
+                sncosmo_table["selected"] = np.isin(sncosmo_table["id"], list(selected_source_ids))
 
                 source_positions = SkyCoord(
                     [(dp["body"]["ra"], dp["body"]["dec"]) for dp in sources],
                     unit="deg",
                 )
 
-                nuclear_filter_res = NuclearFilterResult.model_validate(
-                    tran_view.get_t2_body(unit="T2NuclearFilter")
-                )
-                assert nuclear_filter_res
                 if (host := nuclear_filter_res.report.host) is not None:
                     host_pos = SkyCoord(
                         host.ra,
@@ -2250,23 +2299,25 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         "host_ddra": host_ddra,
                         "host_ddec": host_ddec,
                         "host_sep": host_sep,
+                        "selected": [dp["body"]["diaSourceId"] in selected_source_ids for dp in sources],
                     }
                 )
+                selm = position_table["selected"]
                 seps = {}
                 for f in np.unique(position_table["band"]):
                     m = position_table["band"] == f
-                    if any(m) and any(~m):
+                    if any(m & selm) and any(~m &selm):
                         seps[f] = (
-                            mean_position(source_positions[m])
-                            .separation(mean_position(source_positions[~m]))
+                            mean_position(source_positions[m & selm])
+                            .separation(mean_position(source_positions[~m & selm]))
                             .to_value("arcsec")
                         )
 
-                mean_pos_all = mean_position(source_positions)
+                mean_pos_all = mean_position(source_positions[selm])
                 if grpos := [
                     c
-                    for c, dp in zip(source_positions, sources, strict=True)
-                    if dp["body"]["band"] in ["g", "r"]
+                    for c, dp, m in zip(source_positions, sources, selm, strict=True)
+                    if (dp["body"]["band"] in ["g", "r"]) and m
                 ]:
                     mean_pos_gr = mean_position(SkyCoord(grpos))
                     gr_offset = obj_pos.separation(mean_pos_gr).to_value("arcsec")
@@ -2344,8 +2395,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
                 if self.include_cutouts:
                     if self.internal_cutout_fetch:
+                        selected_pps = [pp for pp, m in zip(photopoints, sncosmo_table["selected"]) if m]
                         cutouts, cutout_cache_key = (
-                            self._build_cutouts_from_photopoints(photopoints)
+                            self._build_cutouts_from_photopoints(selected_pps)
                         )
                         if cutouts:
                             self.logger.debug(

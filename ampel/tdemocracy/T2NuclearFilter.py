@@ -376,7 +376,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             primary_source=match_map["name"][best_match_id],
             ra=float(np.degrees(match_map["ra_rad"][best_match_id])),
             dec=float(np.degrees(match_map["dec_rad"][best_match_id])),
-            redshift=digest_redshifts["ampel_z"],
+            redshift=digest_redshifts.get("ampel_z"),
             distance=dist,
             sources=matched_catalogs.tolist(),
             info=type_info,

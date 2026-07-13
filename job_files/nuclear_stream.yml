@@ -314,3 +314,4 @@ task:
               - unit: LSSTT2Tabulator
                 config:
                   zp: 31.4
+                  tags: ["LSST_DP", "LSST_FP"]

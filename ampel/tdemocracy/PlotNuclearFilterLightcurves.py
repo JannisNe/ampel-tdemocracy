@@ -206,7 +206,7 @@ def fig_from_fluxtable(
     sel_pos = position_table["selected"]
     for band in np.unique(position_table["band"]):
         pt = position_table[(position_table["band"] == band) & sel_pos]
-        if len(pt)> 0:
+        if len(pt) > 0:
             fq = np.quantile(pt["template_flux"], [0.5, 0.05, 0.95])
             rq = np.quantile(pt["reliability"], [0.5, 0.05, 0.95])
             info.append(f"{band}  {fq[0]:14.2f}    {rq[0]:5.2f}")
@@ -476,7 +476,6 @@ def fig_from_fluxtable(
         bandm = fluxtable["band"] == fid
 
         for mec, fpm in zip(["none", "black"], [~fp_m, fp_m]):
-
             temp_tab_sel = fluxtable[bandm & selm & fpm]
             if len(temp_tab_sel) > 0:
                 lc_ax1.errorbar(
@@ -516,7 +515,7 @@ def fig_from_fluxtable(
                     mec=mec,
                     mew=0.5,
                     zorder=2,
-                    alpha=0.6
+                    alpha=0.6,
                 )
                 lc_flux_ax.errorbar(
                     temp_tab_sel["time"],
@@ -528,7 +527,7 @@ def fig_from_fluxtable(
                     mec=mec,
                     mew=0.5,
                     zorder=2,
-                    alpha=0.6
+                    alpha=0.6,
                 )
 
         # Upper limits remain unchanged (typically not stacked)
@@ -2225,7 +2224,6 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             PdfPages(self._out_dir / "nuclear_filter_failed.pdf") as failed_pdf,
         ):
             for tran_view in gen:
-
                 if (self.max_iter is not None) and (n_iter > self.max_iter):
                     break
 
@@ -2233,7 +2231,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     tran_view.get_t2_body(unit="T2NuclearFilter")
                 )
                 assert nuclear_filter_res
-                selected_source_ids = set(pp.id for pp in nuclear_filter_res.report.photometry)
+                selected_source_ids = set(
+                    pp.id for pp in nuclear_filter_res.report.photometry
+                )
 
                 photopoints = self._get_photopoints_any_id(tran_view)
                 if not photopoints:
@@ -2263,7 +2263,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 fps_sncosmo_table = self.get_flux_table(photopoints)
                 sncosmo_table = vstack([dps_sncosmo_table, fps_sncosmo_table])
                 assert all(np.isin(list(selected_source_ids), sncosmo_table["id"]))
-                sncosmo_table["selected"] = np.isin(sncosmo_table["id"], list(selected_source_ids))
+                sncosmo_table["selected"] = np.isin(
+                    sncosmo_table["id"], list(selected_source_ids)
+                )
 
                 source_positions = SkyCoord(
                     [(dp["body"]["ra"], dp["body"]["dec"]) for dp in sources],
@@ -2299,14 +2301,17 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         "host_ddra": host_ddra,
                         "host_ddec": host_ddec,
                         "host_sep": host_sep,
-                        "selected": [dp["body"]["diaSourceId"] in selected_source_ids for dp in sources],
+                        "selected": [
+                            dp["body"]["diaSourceId"] in selected_source_ids
+                            for dp in sources
+                        ],
                     }
                 )
                 selm = position_table["selected"]
                 seps = {}
                 for f in np.unique(position_table["band"]):
                     m = position_table["band"] == f
-                    if any(m & selm) and any(~m &selm):
+                    if any(m & selm) and any(~m & selm):
                         seps[f] = (
                             mean_position(source_positions[m & selm])
                             .separation(mean_position(source_positions[~m & selm]))
@@ -2395,7 +2400,11 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
                 if self.include_cutouts:
                     if self.internal_cutout_fetch:
-                        selected_pps = [pp for pp, m in zip(photopoints, sncosmo_table["selected"]) if m]
+                        selected_pps = [
+                            pp
+                            for pp, m in zip(photopoints, sncosmo_table["selected"])
+                            if m
+                        ]
                         cutouts, cutout_cache_key = (
                             self._build_cutouts_from_photopoints(selected_pps)
                         )

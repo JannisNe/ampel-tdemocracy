@@ -53,7 +53,6 @@ from ampel.tdemocracy.util.catalog_column_info import (
 )
 from ampel.types import StockId, T3Send, UBson
 from ampel.view.TransientView import TransientView
-from ligo.skymap import plot
 
 # Keys as provided by tabulators
 BANDPASSES = {
@@ -475,7 +474,7 @@ def fig_from_fluxtable(
 
         bandm = fluxtable["band"] == fid
 
-        for mec, fpm in zip(["none", "black"], [~fp_m, fp_m]):
+        for mec, fpm in zip(["none", "black"], [~fp_m, fp_m], strict=True):
             temp_tab_sel = fluxtable[bandm & selm & fpm]
             if len(temp_tab_sel) > 0:
                 lc_ax1.errorbar(
@@ -2256,10 +2255,10 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 assert len(sources) >= lsst_obj["body"]["nDiaSources"]
 
                 # get all DPs
-                self._tab_engines[0]._tag_priority = {"LSST_DP": 1}
+                self._tab_engines[0]._tag_priority = {"LSST_DP": 1}  # noqa: SLF001
                 dps_sncosmo_table = self.get_flux_table(photopoints)
                 # get all FPs
-                self._tab_engines[0]._tag_priority = {"LSST_FP": 1}
+                self._tab_engines[0]._tag_priority = {"LSST_FP": 1}  # noqa: SLF001
                 fps_sncosmo_table = self.get_flux_table(photopoints)
                 sncosmo_table = vstack([dps_sncosmo_table, fps_sncosmo_table])
                 assert all(np.isin(list(selected_source_ids), sncosmo_table["id"]))
@@ -2402,7 +2401,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     if self.internal_cutout_fetch:
                         selected_pps = [
                             pp
-                            for pp, m in zip(photopoints, sncosmo_table["selected"])
+                            for pp, m in zip(
+                                photopoints, sncosmo_table["selected"], strict=False
+                            )
                             if m
                         ]
                         cutouts, cutout_cache_key = (

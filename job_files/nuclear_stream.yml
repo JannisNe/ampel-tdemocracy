@@ -239,6 +239,7 @@ task:
                       config:
                         zp: 31.4
                         tags: ["LSST_DP", "LSST_FP"]
+                        convert2jd: false
                   result_adapter:
                     unit: ConditionalHopskotchAdapter
                     config:

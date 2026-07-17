@@ -166,6 +166,9 @@ def test_t2_nuclear_filter(collections, test_schema, mock_context):  # noqa: ARG
         assert len(res_phot) == len(ref_phot)
         for i, (res, ref) in enumerate(zip(res_phot, ref_phot, strict=False)):
             for k, resv in res.items():
-                assert resv == pytest.approx(ref[k], rel=1e-8), (
+                refv = ref[k]
+                if k == "time":
+                    refv -= 2400000.5  # test data was created with convert2jd: true
+                assert resv == pytest.approx(refv, rel=1e-8), (
                     f"Stock: {stock}, Epoch {i}: {k} failed!"
                 )

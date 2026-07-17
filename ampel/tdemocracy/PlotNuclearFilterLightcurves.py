@@ -2255,10 +2255,10 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 assert len(sources) >= lsst_obj["body"]["nDiaSources"]
 
                 # get all DPs
-                self._tab_engines[0]._tag_priority = {"LSST_DP": 1}  # noqa: SLF001
+                self._tab_engines[0]._tag_priority = {"LSST_DP": 1}  # type: ignore # noqa: SLF001
                 dps_sncosmo_table = self.get_flux_table(photopoints)
                 # get all FPs
-                self._tab_engines[0]._tag_priority = {"LSST_FP": 1}  # noqa: SLF001
+                self._tab_engines[0]._tag_priority = {"LSST_FP": 1}  # type: ignore  # noqa: SLF001
                 fps_sncosmo_table = self.get_flux_table(photopoints)
                 sncosmo_table = vstack([dps_sncosmo_table, fps_sncosmo_table])
                 assert all(np.isin(list(selected_source_ids), sncosmo_table["id"]))

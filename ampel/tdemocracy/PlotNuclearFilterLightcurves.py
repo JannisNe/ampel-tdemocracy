@@ -2226,10 +2226,12 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 if (self.max_iter is not None) and (n_iter > self.max_iter):
                     break
 
+                nuclear_filter_res_body = tran_view.get_t2_body(unit="T2NuclearFilter")
+                if not nuclear_filter_res_body:
+                    continue
                 nuclear_filter_res = NuclearFilterResult.model_validate(
-                    tran_view.get_t2_body(unit="T2NuclearFilter")
+                    nuclear_filter_res_body
                 )
-                assert nuclear_filter_res
                 selected_source_ids = set(
                     pp.id for pp in nuclear_filter_res.report.photometry
                 )

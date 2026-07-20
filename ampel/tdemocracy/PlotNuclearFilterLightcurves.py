@@ -2098,7 +2098,10 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             except Exception:
                 pass
 
-        cutout = self._download_lsst_cutout(dia_source_id)
+        try:
+            cutout = self._download_lsst_cutout(dia_source_id)
+        except requests.HTTPError:
+            return None
 
         if cutout is None:
             if cache_path:

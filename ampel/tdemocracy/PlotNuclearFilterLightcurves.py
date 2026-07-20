@@ -53,6 +53,7 @@ from ampel.tdemocracy.util.catalog_column_info import (
 )
 from ampel.types import StockId, T3Send, UBson
 from ampel.view.TransientView import TransientView
+from ligo.skymap import plot  # noqa: F401
 
 # Keys as provided by tabulators
 BANDPASSES = {

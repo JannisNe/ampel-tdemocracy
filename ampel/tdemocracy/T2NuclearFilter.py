@@ -38,41 +38,13 @@ from ampel.tdemocracy.util.catalog_column_info import (
 from ampel.types import StockId, UBson
 from ampel.view.T2DocView import T2DocView
 
-RUBIN_ALERT_FLAGS = [
+CHECK_FLAGS = [
     "centroid_flag",
     "apFlux_flag",
-    "apFlux_flag_apertureTruncated",
     "psfFlux_flag",
-    "psfFlux_flag_edge",
-    "psfFlux_flag_noGoodPixels",
-    "trail_flag_edge",
     "forced_PsfFlux_flag",
-    "forced_PsfFlux_flag_edge",
-    "forced_PsfFlux_flag_noGoodPixels",
     "shape_flag",
-    "shape_flag_no_pixels",
-    "shape_flag_not_contained",
-    "shape_flag_parent_source",
-    "pixelFlags",
-    "pixelFlags_bad",
-    "pixelFlags_cr",
-    "pixelFlags_crCenter",
-    "pixelFlags_edge",
-    "pixelFlags_nodata",
-    "pixelFlags_nodataCenter",
-    "pixelFlags_interpolated",
-    "pixelFlags_interpolatedCenter",
-    "pixelFlags_offimage",
-    "pixelFlags_saturated",
-    "pixelFlags_saturatedCenter",
-    "pixelFlags_suspect",
-    "pixelFlags_suspectCenter",
-    "pixelFlags_streak",
-    "pixelFlags_streakCenter",
-    "pixelFlags_injected",
-    "pixelFlags_injectedCenter",
-    "pixelFlags_injected_template",
-    "pixelFlags_injected_templateCenter",
+    "any_pixel_flag",
 ]
 
 
@@ -225,7 +197,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             for dp in datapoints
             if ((visit := dp["body"].get("visit")) is not None)
             and (
-                any([dp["body"].get(flag) for flag in RUBIN_ALERT_FLAGS])
+                any([dp["body"].get(flag) for flag in CHECK_FLAGS])
                 or ((visit > 2026021900000) and (visit < 2026022400000))
             )
         )

@@ -1,5 +1,6 @@
 import argparse
 import logging
+import re
 import subprocess
 import tempfile
 from collections.abc import Generator
@@ -35,13 +36,13 @@ RESULT_ADAPTER_CONFIG = (
 
 def patch_schema(fin: TextIOWrapper, fout: TextIOWrapper):
     fout.write(
-        fin.read()
-        .replace(
-            "/Users/jannisnecker/Data/lsst-alerts-2026-05-24--2026-06-24-r0.8.parquet",
-            str(INPUT_DATA),
+        re.sub(
+            r"(unit:\s*ParquetAlertLoader\s*\n\s*config:\s*\n\s*path:\s*)\S+",
+            rf"\1{INPUT_DATA!s}",
+            fin.read()
+            .replace("nucelar_stream_test_june", MONGO_PREFIX)
+            .replace(RESULT_ADAPTER_CONFIG, ""),
         )
-        .replace("nucelar_stream_test_june", MONGO_PREFIX)
-        .replace(RESULT_ADAPTER_CONFIG, "")
     )
 
 

@@ -156,10 +156,6 @@ def test_t2_nuclear_filter(collections, test_schema, mock_context):  # noqa: ARG
                     if (attr == "host") and (k in ["sources", "info"]):
                         assert sorted(resv) == sorted(refv), msg
                     else:
-                        # The test data had an error fixed here:
-                        # https://github.com/JannisNe/ampel-tdemocracy/commit/f7eb317f49010c12b9bacead70a2d466edd69b2a
-                        if (attr == "mean_position") and (k == "circularized_error"):
-                            refv = np.sqrt(refv * 3600)
                         assert resv == pytest.approx(refv, rel=1e-8), msg
 
         # check also photometry
@@ -169,8 +165,6 @@ def test_t2_nuclear_filter(collections, test_schema, mock_context):  # noqa: ARG
         for i, (res, ref) in enumerate(zip(res_phot, ref_phot, strict=False)):
             for k, resv in res.items():
                 refv = ref[k]
-                if k == "time":
-                    refv -= 2400000.5  # test data was created with convert2jd: true
                 assert resv == pytest.approx(refv, rel=1e-8), (
                     f"Stock: {stock}, Epoch {i}: {k} failed!"
                 )

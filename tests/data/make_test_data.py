@@ -114,10 +114,10 @@ if __name__ == "__main__":
     console = Console()
     console.print(
         Panel(
-            "[bold yellow]⚠ Make sure new test data is needed! ⚠[/]\n\n"
-            " • Do not make test data just to pass the unit tests!\n"
-            " • Make sure you understand why the tests fail and which change makes the old test data obsolete!\n"
-            " • Make sure any relevant changes are documented in CHANGELOG.md!",
+            "[bold yellow]⚠ Make sure new test data is needed! [/]\n\n"
+            "• Do not make test data just to pass the unit tests!\n"
+            "• Make sure you understand why the tests fail and which change makes the old test data obsolete!\n"
+            "• Make sure any relevant changes are documented in CHANGELOG.md!",
             title="[bold red]CAUTION[/]",
             border_style="bright_red",
             padding=(1, 2),

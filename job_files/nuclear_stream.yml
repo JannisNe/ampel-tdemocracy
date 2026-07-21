@@ -148,6 +148,7 @@ task:
           check_flags_per_source: 'all'
           min_ndet: 10
           min_ndet_snr: 5
+          count_only_positive: true
           min_ndet_cadence: 0.05
           min_n_filters: 2
           min_tspan: 5

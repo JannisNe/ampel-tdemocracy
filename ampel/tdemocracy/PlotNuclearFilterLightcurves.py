@@ -32,7 +32,7 @@ from astropy.time import Time
 from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
 from astropy_healpix import HEALPix
-from ligo.skymap import plot  # noqa: F401
+from ligo.skymap import plot  # type: ignore  # noqa: F401
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
@@ -2235,13 +2235,14 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
                 n_dps = 0
                 link = None
+                assert tran_view.t1 is not None
                 for t1 in tran_view.t1:
                     if (c_dps := len(t1["dps"])) > n_dps:
                         n_dps = c_dps
                         link = t1["link"]
                 assert link is not None
-                nuclear_filter_res_body = tran_view.get_t2_body(
-                    unit="T2NuclearFilter", link=link
+                nuclear_filter_res_body = tran_view.get_t2_body(  # type: ignore
+                    unit="T2NuclearFilter", link=int(link)
                 )
                 if not nuclear_filter_res_body:
                     continue

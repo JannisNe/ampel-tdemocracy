@@ -184,7 +184,10 @@ def fig_from_fluxtable(
         passed = "passed" if nuclear_filter_res.passed else "failed"
         info.append(f"Nuclear filter: {passed}")
         if (host := nuclear_filter_res.report.host) is not None:
-            info.append(f"Host dist: {host.distance:.2f}")
+            mp = nuclear_filter_res.report.mean_position
+            info.append(
+                f"Host dist: {host.distance:.2f}  (±{mp.circularized_error:.2f} {mp.std:.2f})"
+            )
             info.append("Types:")
             assert isinstance(host.info, dict)
             for cat_name, cat_info in host.info.items():
@@ -2310,6 +2313,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         "ra_dec_cov": [dp["body"]["ra_dec_Cov"] for dp in sources],
                         "band": [LSST_BANDPASSES[dp["body"]["band"]] for dp in sources],
                         "flux": [dp["body"]["psfFlux"] for dp in sources],
+                        "time": [dp["body"]["midpointMjdTai"] for dp in sources],
                         "reliability": [dp["body"]["reliability"] for dp in sources],
                         "template_flux": [dp["body"]["templateFlux"] for dp in sources],
                         "host_ddra": host_ddra,
@@ -2555,39 +2559,46 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
         if any(calibration_sources):
             stacked_table = vstack(list(calibration_sources.values()))
+            lsst_mask = stacked_table["time"] > Time("2026-07-01").mjd
             chi2_2d_cdf = chi2(2).cdf
 
             fig, axs = plt.subplots(
                 nrows=len(rubin_bands), figsize=(5, 7.5), sharex="all", sharey="all"
             )
             for b, ax in zip(rubin_bands, axs, strict=True):
-                g = stacked_table[stacked_table["band"] == b]
-                if len(g) > 0:
-                    err_2d_sq = (g["raErr"] ** 2 + g["decErr"] ** 2) * 3600**2
-                    chi2_values = g["host_sep"] ** 2 / err_2d_sq
-                    bins = np.linspace(0, min([5, max(chi2_values)]))
-                    if max(chi2_values) > 5:
-                        bins = np.array([*list(bins), max(chi2_values)])
-                    ax.hist(
-                        chi2_values,
-                        density=True,
-                        label=b,
-                        color=BANDPASSES[b]["c"],
-                        bins=bins,
-                        cumulative=True,
-                    )
-                    ks_res = kstest(chi2_values, chi2_2d_cdf)
-                    ax.annotate(
-                        f"{ks_res.pvalue:.1e}",
-                        xy=(0, 1),
-                        xycoords="axes fraction",
-                        xytext=(2, -2),
-                        textcoords="offset points",
-                    )
-                    xx = np.linspace(0, max(chi2_values), 100)
-                    yy = chi2_2d_cdf(xx)
-                    ax.plot(xx, yy, ls="-", color="k")
-                    ax.legend(frameon=False)
+                for m, t, a in zip([~lsst_mask, lsst_mask], ["step", "bar"], [1, 0.8]):
+                    g = stacked_table[(stacked_table["band"] == b) & m]
+                    if len(g) > 0:
+                        err_2d_sq = (g["raErr"] ** 2 + g["decErr"] ** 2) * 3600**2
+                        chi2_values = g["host_sep"] ** 2 / err_2d_sq
+                        bins = np.linspace(0, min([5, max(chi2_values)]))
+                        if max(chi2_values) > 5:
+                            bins = np.array([*list(bins), max(chi2_values)])
+                        ax.hist(
+                            chi2_values,
+                            density=True,
+                            label=b,
+                            color=BANDPASSES[b]["c"],
+                            bins=bins,
+                            cumulative=True,
+                            histtype=t,
+                            alpha=a,
+                        )
+                        if t == "bar":
+                            ks_res = kstest(chi2_values, chi2_2d_cdf)
+                            ax.annotate(
+                                f"{ks_res.pvalue:.1e}",
+                                xy=(0, 1),
+                                xycoords="axes fraction",
+                                xytext=(2, -2),
+                                textcoords="offset points",
+                                ha="left",
+                                va="top",
+                            )
+                            xx = np.linspace(0, 5, 100)
+                            yy = chi2_2d_cdf(xx)
+                            ax.plot(xx, yy, ls="-", color="k")
+                        ax.legend(frameon=False)
 
             xlim = axs[-1].get_xlim()
             axs[-1].set_xlabel(r"$\Psi^2 / \delta_\mathrm{2d}^2$")

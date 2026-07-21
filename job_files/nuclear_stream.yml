@@ -1,7 +1,7 @@
 name: earlyreleasetest
 
 mongo:
-  prefix: nucelar_stream_test_june
+  prefix: nucelar_stream_test_july
   reset: false
 
 channel:
@@ -30,7 +30,7 @@ task:
         loader:
           unit: ParquetAlertLoader
           config:
-            path: /Users/jannisnecker/Data/lsst-alerts-2026-05-24--2026-06-24-r0.8.parquet
+            path: /cephfs/users/neckerja/scratch/rubicube/alert_dumps/lsst-alerts-2026-07-01--2026-07-20-r0.8.parquet
 #          unit: LSSTArchiveAlertLoader
 #          config:
 #            archive_url: "https://ampel-dev.ia.zeuthen.desy.de/api/lsst/archive/v1/"
@@ -298,7 +298,7 @@ task:
         execute:
           - unit: PlotNuclearFilterLightcurves
             config:
-              out_dir: /cephfs/users/neckerja/scratch/rubicube/nuclear_candidates_june
+              out_dir: /cephfs/users/neckerja/scratch/rubicube/nuclear_candidates_july
               save_png: false
               include_cutouts: true
               internal_cutout_fetch: true
@@ -310,7 +310,7 @@ task:
 
               max_per_category: 200
 
-              calibration_indices: [170046091979391069, 170046091714625647, 170046091702566947, 170046091672682560]
+              calibration_indices: [170046091979391069, 170046091714625647, 170046091702566947, 170046091672682560, 170028526495334416, 313893023228362837, 313761042265538617, 313879818747773047, 313893022817845292]
 
               tabulator:
               - unit: LSSTT2Tabulator

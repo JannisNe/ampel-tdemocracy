@@ -32,6 +32,7 @@ from astropy.time import Time
 from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
 from astropy_healpix import HEALPix
+from ligo.skymap import plot  # noqa: F401
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
@@ -53,7 +54,6 @@ from ampel.tdemocracy.util.catalog_column_info import (
 )
 from ampel.types import StockId, T3Send, UBson
 from ampel.view.TransientView import TransientView
-from ligo.skymap import plot  # noqa: F401
 
 # Keys as provided by tabulators
 BANDPASSES = {
@@ -2566,7 +2566,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 nrows=len(rubin_bands), figsize=(5, 7.5), sharex="all", sharey="all"
             )
             for b, ax in zip(rubin_bands, axs, strict=True):
-                for m, t, a in zip([~lsst_mask, lsst_mask], ["step", "bar"], [1, 0.8]):
+                for m, t, a in zip(
+                    [~lsst_mask, lsst_mask], ["step", "bar"], [1, 0.8], strict=True
+                ):
                     g = stacked_table[(stacked_table["band"] == b) & m]
                     if len(g) > 0:
                         err_2d_sq = (g["raErr"] ** 2 + g["decErr"] ** 2) * 3600**2

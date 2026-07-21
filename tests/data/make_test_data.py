@@ -41,9 +41,11 @@ def patch_schema(fin: TextIOWrapper, fout: TextIOWrapper):
         re.sub(
             r"(unit:\s*ParquetAlertLoader\s*\n\s*config:\s*\n\s*path:\s*)\S+",
             rf"\1{INPUT_DATA!s}",
-            fin.read()
-            .replace("nucelar_stream_test_june", MONGO_PREFIX)
-            .replace(RESULT_ADAPTER_CONFIG, ""),
+            re.sub(
+                r"(mongo:\s*\n\s*prefix:\s*)\S+",
+                rf"\1{MONGO_PREFIX}",
+                fin.read().replace(RESULT_ADAPTER_CONFIG, ""),
+            ),
         )
     )
 

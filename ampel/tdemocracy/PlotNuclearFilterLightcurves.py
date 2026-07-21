@@ -2230,7 +2230,16 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 if (self.max_iter is not None) and (n_iter > self.max_iter):
                     break
 
-                nuclear_filter_res_body = tran_view.get_t2_body(unit="T2NuclearFilter")
+                n_dps = 0
+                link = None
+                for t1 in tran_view.t1:
+                    if (c_dps := len(t1["dps"])) > n_dps:
+                        n_dps = c_dps
+                        link = t1["link"]
+                assert link is not None
+                nuclear_filter_res_body = tran_view.get_t2_body(
+                    unit="T2NuclearFilter", link=link
+                )
                 if not nuclear_filter_res_body:
                     continue
                 nuclear_filter_res = NuclearFilterResult.model_validate(

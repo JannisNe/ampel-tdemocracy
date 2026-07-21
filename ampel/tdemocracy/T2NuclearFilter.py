@@ -237,7 +237,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         mean_pos.representation_type = "spherical"
 
         circularized_mean_error = (
-            sum((normed_weights * circularized_errors) ** 2) * 3600
+            np.sqrt(sum((normed_weights * circularized_errors) ** 2)) * 3600
         )
         separations_to_mean = coords.separation(mean_pos).to_value("arcsec")
         std = np.std(separations_to_mean)

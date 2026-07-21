@@ -12,3 +12,7 @@ __pycache__
 .idea
 secrets.yml
 ampel_config.yml
+finder_cache
+cutout_cache
+scripts/*.pdf
+scripts/mutliple_sources_per_visit.json

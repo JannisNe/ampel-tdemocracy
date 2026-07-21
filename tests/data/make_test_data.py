@@ -9,6 +9,8 @@ from io import TextIOWrapper
 from pathlib import Path
 
 import yaml
+from rich.console import Console
+from rich.panel import Panel
 
 from ampel.cli.JobCommand import JobCommand
 
@@ -108,6 +110,21 @@ if __name__ == "__main__":
     parser.add_argument("--log-level", type=str, default="INFO", help="Log level")
     args = parser.parse_args()
     logging.basicConfig(level=args.log_level)
+
+    console = Console()
+    console.print(
+        Panel(
+            "[bold yellow]⚠ Make sure new test data is needed! ⚠[/]\n\n"
+            " • Do not make test data just to pass the unit tests!\n"
+            " • Make sure you understand why the tests fail and which change makes the old test data obsolete!\n"
+            " • Make sure any relevant changes are documented in CHANGELOG.md!",
+            title="[bold red]CAUTION[/]",
+            border_style="bright_red",
+            padding=(1, 2),
+            expand=False,
+        )
+    )
+    input("If you have done the above, press enter to continue...")
     config_path = str(args.config.absolute())
     run_job(args.config, args.secrets)
     for i in range(3):

@@ -156,11 +156,13 @@ def test_t2_nuclear_filter(collections, test_schema, mock_context):  # noqa: ARG
                     if (attr == "host") and (k in ["sources", "info"]):
                         assert sorted(resv) == sorted(refv), msg
                     else:
-                        assert resv == pytest.approx(
-                            reference["report"][attr][k], rel=1e-8
-                        ), msg
+                        # The test data had an error fixed here:
+                        # https://github.com/JannisNe/ampel-tdemocracy/commit/f7eb317f49010c12b9bacead70a2d466edd69b2a
+                        if (attr == "mean_position") and (k == "circularized_error"):
+                            refv = np.sqrt(refv * 3600)
+                        assert resv == pytest.approx(refv, rel=1e-8), msg
 
-        # check alsop photometry
+        # check also photometry
         res_phot = sorted(resb["report"]["photometry"], key=lambda x: x["id"])
         ref_phot = sorted(reference["report"]["photometry"], key=lambda x: x["id"])
         assert len(res_phot) == len(ref_phot)

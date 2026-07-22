@@ -10,6 +10,7 @@ import base64
 import gzip
 import io
 import os
+import warnings
 from collections.abc import Generator, Iterable, Mapping, Sequence
 from contextlib import suppress
 from gzip import BadGzipFile
@@ -32,7 +33,10 @@ from astropy.time import Time
 from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
 from astropy_healpix import HEALPix
-from ligo.skymap import plot  # type: ignore  # noqa: F401
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from ligo.skymap import plot  # type: ignore  # noqa: F401
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize

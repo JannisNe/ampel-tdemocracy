@@ -1,6 +1,6 @@
 [project]
 name = "ampel-tdemocracy"
-version = "0.0.4"
+version = "0.0.5"
 description = "Selecting candidate nuclear transients from the Rubin alert stream for tde TDEmocracy project "
 requires-python = ">=3.12, <4"
 authors = [

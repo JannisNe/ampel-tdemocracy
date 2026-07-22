@@ -8,44 +8,12 @@ import pytest
 import yaml
 from bson import decode_file_iter
 
-from ampel.config.builder.DisplayOptions import DisplayOptions
-from ampel.config.builder.DistConfigBuilder import DistConfigBuilder
 from tests.data.make_test_data import (
     DATA_DIR,
     JOB_FILE_PATH,
     MONGO_PREFIX,
     patch_schema,
 )
-
-
-@pytest.fixture(scope="session")
-def testing_config(tmp_path_factory, pytestconfig):
-    """Path to an Ampel config file suitable for testing."""
-    config_path = tmp_path_factory.mktemp("config") / "testing-config.yaml"
-    if (config := pytestconfig.cache.get("testing_config", None)) is None:
-        # build a config from all available ampel distributions
-        cb = DistConfigBuilder(
-            DisplayOptions(verbose=False, debug=False),
-        )
-        cb.load_distributions()
-        config = cb.build_config(
-            stop_on_errors=0,
-            config_validator="ConfigValidator",
-            get_unit_env=False,
-        )
-        assert config is not None
-        # massage db settings for use with mongomock
-        for db in config["mongo"]["databases"]:
-            for collection in db["collections"]:
-                # remove unsuported storageEngine options
-                if "args" in collection and "storageEngine" in collection["args"]:
-                    collection["args"].pop("storageEngine")
-            # ensure that r and w modes share a client
-            db["role"]["r"] = db["role"]["w"]
-        pytestconfig.cache.set("testing_config", config)
-    with open(config_path, "w") as f:
-        yaml.safe_dump(config, f)
-    return config_path
 
 
 def get_collection_filename(collection_name: str) -> Path:

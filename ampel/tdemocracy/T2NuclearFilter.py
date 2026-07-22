@@ -30,7 +30,7 @@ from ampel.abstract.AbsTiedStateT2Unit import AbsTiedStateT2Unit
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.content.DataPoint import DataPoint
 from ampel.content.T1Document import T1Document
-from ampel.contrib.hu.t0.DecentVroFilter import RUBIN_ALERT_FLAGS
+from ampel.lsst.t0.DecentVroFilter import RUBIN_ALERT_FLAGS
 from ampel.contrib.hu.util.LasairAnnotator import LasairAnnotator
 from ampel.model.StateT2Dependency import StateT2Dependency
 from ampel.model.UnitModel import UnitModel

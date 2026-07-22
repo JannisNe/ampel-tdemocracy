@@ -242,7 +242,7 @@ task:
                         tags: ["LSST_DP", "LSST_FP"]
                         convert2jd: false
                   result_adapter:
-                    unit: ConditionalHopskotchAdapter
+                    unit: HopskotchAdapter
                     config:
                       broker: kafka.scimma.org
                       auth:
@@ -253,7 +253,7 @@ task:
                       topic: Ampel-TDEmocracy.nucelar-stream-dev
                       model: tdemocracy.model.NuclearTransientReport
                       message_path: report
-                      conditional_path: passed
+                      condition_path: passed
                 ingest:
                   filter: LSSTObjFilter
                   select: last

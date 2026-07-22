@@ -162,15 +162,38 @@ ujson = ">=5.1.0,<6.0.0"
 xxhash = ">=3.0.0,<4.0.0"
 
 [[package]]
+name = "ampel-kafka"
+version = "0.10.0a2"
+description = "Apache Kafka support for the Ampel system."
+optional = false
+python-versions = "<4,>=3.11"
+groups = ["main"]
+files = [
+    {file = "ampel_kafka-0.10.0a2-py3-none-any.whl", hash = "sha256:bd14f48f30269ac9ab5bbc6ba29de135ffabd3a37592fa5ba4bc3062f59af713"},
+    {file = "ampel_kafka-0.10.0a2.tar.gz", hash = "sha256:0f0dbdfb0b4ed60ac95caf1753bd57a3ec279e01ffbac41a7f1bc7b9d36a2064"},
+]
+
+[package.dependencies]
+ampel-alerts = ">=0.10.3,<0.11.0"
+ampel-core = ">=0.10.6a23,<0.11"
+ampel-interface = ">=0.10.4.post2,<0.11"
+confluent-kafka = {version = ">=2.15.0,<3.0.0", extras = ["schemaregistry"]}
+fastavro = ">=1.12.2,<2.0.0"
+requests = ">=2.34.2,<3.0.0"
+
+[package.extras]
+hop = ["hop-client (>=0.12.1,<0.13.0)", "py-avro-schema (>=3.8.2,<4.0.0)"]
+
+[[package]]
 name = "ampel-lsst"
-version = "0.10.1a18"
+version = "0.10.1a21"
 description = "Legacy Survey of Space and Time support for the Ampel system"
 optional = false
 python-versions = "<4,>=3.11"
 groups = ["main"]
 files = [
-    {file = "ampel_lsst-0.10.1a18-py3-none-any.whl", hash = "sha256:33477cc8714fea35ffab22c5fc745dc895e741f2690e9a9a7ec164c82a4dcb77"},
-    {file = "ampel_lsst-0.10.1a18.tar.gz", hash = "sha256:76463685f7e571f60c7fb5aa5195a98fc6a38c12ac667566febe33fcc71aabcb"},
+    {file = "ampel_lsst-0.10.1a21-py3-none-any.whl", hash = "sha256:65849ba1301063dac24bf7f8672c8a547998d2070baf1219ef96703f809651af"},
+    {file = "ampel_lsst-0.10.1a21.tar.gz", hash = "sha256:ee11c85f683c9d02e492ee1b6a2c52cc15f1408fd0a7521f8eb5dc9ccde978d3"},
 ]
 
 [package.dependencies]
@@ -178,9 +201,6 @@ ampel-alerts = ">=0.10.3,<0.11.0"
 ampel-catalogmatch = ">=0.10.0a2,<0.11.0"
 ampel-interface = ">=0.10.4.post2,<0.11"
 ampel-photometry = ">=0.10.1,<0.11.0"
-confluent-kafka = {version = ">=2.12.2,<3.0.0", extras = ["schemaregistry"]}
-fastavro = ">=1.12.1,<2.0.0"
-requests = ">=2.32.5,<3.0.0"
 
 [[package]]
 name = "ampel-photometry"
@@ -5068,4 +5088,4 @@ tests = ["coverage", "pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <4"
-content-hash = "5e6133bbe1c0344989c2939758e7744c8dac07e2041935ee53dd1f0963e8dbf3"
+content-hash = "ed206d454892e4c1a131f257c54a21bceba09bc02ee447af66c0604644629b9d"

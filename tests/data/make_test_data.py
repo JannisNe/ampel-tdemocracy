@@ -21,7 +21,7 @@ INPUT_DATA = DATA_DIR / "lsst-alerts-2026-07-05--2026-07-06-r0.8.parquet"
 MONGO_PREFIX = "nuclear_stream_test_data"
 RESULT_ADAPTER_CONFIG = (
     "                  result_adapter:\n"
-    "                    unit: ConditionalHopskotchAdapter\n"
+    "                    unit: HopskotchAdapter\n"
     "                    config:\n"
     "                      broker: kafka.scimma.org\n"
     "                      auth:\n"
@@ -32,11 +32,28 @@ RESULT_ADAPTER_CONFIG = (
     "                      topic: Ampel-TDEmocracy.nucelar-stream-dev\n"
     "                      model: tdemocracy.model.NuclearTransientReport\n"
     "                      message_path: report\n"
-    "                      conditional_path: passed\n"
+    "                      condition_path: passed\n"
 )
 
 
-def patch_schema(fin: TextIOWrapper, fout: TextIOWrapper):
+def patch_schema(
+    fin: TextIOWrapper,
+    fout: TextIOWrapper,
+    remove_adapter: bool = True,
+    iter_max: int | None = None,
+) -> None:
+    text_in = fin.read()
+    if remove_adapter:
+        text_in = text_in.replace(RESULT_ADAPTER_CONFIG, "")
+
+    # More targeted replacement: only change iter_max in the AlertConsumer task config
+    if iter_max is not None:
+        pattern = re.compile(
+            r"(unit:\s*AlertConsumer\s*\n\s*config:\s*\n.*?iter_max:\s*)(\d+)",
+            flags=re.S,
+        )
+        text_in = pattern.sub(lambda m: m.group(1) + str(int(iter_max)), text_in)
+
     fout.write(
         re.sub(
             r"(unit:\s*ParquetAlertLoader\s*\n\s*config:\s*\n\s*path:\s*)\S+",
@@ -44,7 +61,7 @@ def patch_schema(fin: TextIOWrapper, fout: TextIOWrapper):
             re.sub(
                 r"(mongo:\s*\n\s*prefix:\s*)\S+",
                 rf"\1{MONGO_PREFIX}",
-                fin.read().replace(RESULT_ADAPTER_CONFIG, ""),
+                text_in,
             ),
         )
     )

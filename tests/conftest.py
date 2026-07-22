@@ -42,10 +42,25 @@ def collections() -> dict[str, dict]:
 
 
 @pytest.fixture
-def test_schema_path(tmp_path: Path) -> Path:
-    test_schema_path = tmp_path / "test_schema.yaml"
+def test_schema_path(tmp_path: Path, request) -> Path:
+    """Create a test schema file. Can be configured via pytest.mark.schema(remove_adapter=..., filename=...)
+
+    marker kwargs:
+      - remove_adapter: bool (default True) -> passed to patch_schema
+    """
+    marker = request.node.get_closest_marker("schema")
+    filename = "test_schema.yaml"
+    remove_adapter = True
+    iter_max = None
+    if marker:
+        if "remove_adapter" in marker.kwargs:
+            remove_adapter = bool(marker.kwargs["remove_adapter"])
+        if "iter_max" in marker.kwargs:
+            iter_max = marker.kwargs["iter_max"]
+
+    test_schema_path = tmp_path / filename
     with open(JOB_FILE_PATH) as f, test_schema_path.open("w") as g:
-        patch_schema(f, g)
+        patch_schema(f, g, remove_adapter=remove_adapter, iter_max=iter_max)
     return test_schema_path
 
 

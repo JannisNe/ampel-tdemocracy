@@ -68,6 +68,9 @@ filterwarnings = [
     "ignore:pkg_resources is deprecated:DeprecationWarning",
 ]
 testpaths = "tests"
+markers = [
+    "schema: modify test schema",
+]
 
 [tool.mypy]
 namespace_packages = true

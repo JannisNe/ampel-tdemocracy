@@ -124,14 +124,14 @@ hop = ["hop-client (>=0.12.1,<0.13.0)", "py-avro-schema (>=3.8.2,<4.0.0)"]
 
 [[package]]
 name = "ampel-lsst"
-version = "0.10.1a21"
+version = "0.10.1a22"
 description = "Legacy Survey of Space and Time support for the Ampel system"
 optional = false
 python-versions = "<4,>=3.11"
 groups = ["main"]
 files = [
-    {file = "ampel_lsst-0.10.1a21-py3-none-any.whl", hash = "sha256:65849ba1301063dac24bf7f8672c8a547998d2070baf1219ef96703f809651af"},
-    {file = "ampel_lsst-0.10.1a21.tar.gz", hash = "sha256:ee11c85f683c9d02e492ee1b6a2c52cc15f1408fd0a7521f8eb5dc9ccde978d3"},
+    {file = "ampel_lsst-0.10.1a22-py3-none-any.whl", hash = "sha256:2a27d0f8fdb5e18255f744afd74443f9b3fa74a844765116d52d34cae58db221"},
+    {file = "ampel_lsst-0.10.1a22.tar.gz", hash = "sha256:852c46be384bed4365fd0f49b1183c7ad27a934ce37c2422df2cc11fb50921e8"},
 ]
 
 [package.dependencies]
@@ -139,6 +139,10 @@ ampel-alerts = ">=0.10.3,<0.11.0"
 ampel-catalogmatch = ">=0.10.0a2,<0.11.0"
 ampel-interface = ">=0.10.4.post2,<0.11"
 ampel-photometry = ">=0.10.1,<0.11.0"
+
+[package.extras]
+arrow = ["pyarrow (>=25.0.0,<26.0.0)"]
+cache = ["valkey-glide-sync (>=2.5.0,<3.0.0)"]
 
 [[package]]
 name = "ampel-photometry"
@@ -4434,4 +4438,4 @@ remote = ["fsspec (>=2023.10.0)", "obstore (>=0.5.1)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <4"
-content-hash = "9a5d8b1bbf659078b9535f57d82ef1e8ab805f82f0bf4d5ab2fa6e6d44bd64db"
+content-hash = "c5ac388c46bbeb943f67aabb3129f3459d740ffee3a3e1cf5db927ef785f66d1"

@@ -63,6 +63,8 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit, LasairAnnotator):
 
     result_adapter: UnitModel | None = None
     do_lasair_annotation: bool = True
+    lasair_topic: Literal["tdemocracy-nuclear-stream"] = "tdemocracy-nuclear-stream"
+    lasair_version = "lsst"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

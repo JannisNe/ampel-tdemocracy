@@ -1507,6 +1507,8 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
     calibration_indices: list[StockId] | None = None
 
+    check_all_dia_sources: bool = True
+
     def post_init(self) -> None:
         """
         Post-initialization routine for PlotTransientLightcurves.
@@ -2271,7 +2273,8 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 )
 
                 sources = [dp for dp in tran_view.t0 if ("diaSourceId" in dp["body"])]
-                assert len(sources) >= lsst_obj["body"]["nDiaSources"]
+                if self.check_all_dia_sources:
+                    assert len(sources) >= lsst_obj["body"]["nDiaSources"]
 
                 # get all DPs
                 self._tab_engines[0]._tag_priority = {"LSST_DP": 1}  # type: ignore # noqa: SLF001

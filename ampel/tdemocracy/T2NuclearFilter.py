@@ -356,7 +356,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit, LasairAnnotator):
         )
         assert report.host is not None  # this is just for mypy
 
-        if self.do_lasair_annotation:
+        if self.do_lasair_annotation and passed:
             self.annotate(
                 str(report.object.id),
                 classification="nuclear",

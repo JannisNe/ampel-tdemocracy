@@ -7,9 +7,11 @@
 # Last Modified By:    jannis.necker@gmail.com
 
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Literal
 
 import numpy as np
+import toml
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import angular_separation
 from scipy.stats import chi2
@@ -28,7 +30,8 @@ from ampel.abstract.AbsTiedStateT2Unit import AbsTiedStateT2Unit
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.content.DataPoint import DataPoint
 from ampel.content.T1Document import T1Document
-from ampel.contrib.hu.t0.DecentVroFilter import RUBIN_ALERT_FLAGS
+from ampel.contrib.hu.util.LasairAnnotator import LasairAnnotator
+from ampel.lsst.t0.DecentVroFilter import RUBIN_ALERT_FLAGS
 from ampel.model.StateT2Dependency import StateT2Dependency
 from ampel.model.UnitModel import UnitModel
 from ampel.struct.UnitResult import UnitResult
@@ -45,7 +48,7 @@ class NuclearFilterResult(AmpelBaseModel):
     report: NuclearTransientReport
 
 
-class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
+class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit, LasairAnnotator):
     match_dist_arcsec: float
     group_matches_within_arcsec: float = 0.5
     min_reliability: float = 0.8
@@ -59,8 +62,9 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
     tabulator: Sequence[UnitModel] = [UnitModel(unit="LSSTT2Tabulator")]
 
     result_adapter: UnitModel | None = None
-
-    version = "0.0.1"
+    do_lasair_annotation: bool = True
+    lasair_topic: Literal["tdemocracy-nuclear-stream"] = "tdemocracy-nuclear-stream"
+    lasair_version = "lsst"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -75,6 +79,11 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         self._convert_to_rad = [*convert_to_rad, "T2LSPhotoZTap"]
         self._redshift_columns, self._type_columns = get_type_and_redshift_columns()
         self._percentile_2dsig = chi2.cdf(1, 2)
+
+        # get version
+        pyproject_toml_file = Path(__file__).parent.parent.parent / "pyproject.toml"
+        data = toml.load(pyproject_toml_file)
+        self._version = data["project"]["version"]
 
     def _get_photometric_points(
         self, datapoints: Sequence[DataPoint]
@@ -241,7 +250,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             photometry=self._get_photometric_points(good_datapoints),
             object=self._get_object(datapoints, compound["stock"]),
             template_fluxes=self._get_template_fluxes(good_datapoints),
-            version=self.version,
+            version=self._version,
             model_version=model_version,
             state=compound["link"],
             mean_position=MeanPosition(
@@ -345,6 +354,25 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             sources=matched_catalogs.tolist(),
             info=type_info,
         )
+        assert report.host is not None  # this is just for mypy
+
+        if self.do_lasair_annotation and passed:
+            self.annotate(
+                str(report.object.id),
+                classification="nuclear",
+                version=self._version,
+                explanation=f"Extended host in LS DR10 within {self.match_dist_arcsec} arcsec",
+                classdict={
+                    "host_distance": report.host.distance,
+                    "mean_position_ra": report.mean_position.mean_ra,
+                    "mean_position_dec": report.mean_position.mean_dec,
+                    "mean_position_std": report.mean_position.std,
+                },
+            )
+        else:
+            self.logger.info(
+                f"Skipping Lasair annotation for {report.object.id} as requested"
+            )
 
         result = NuclearFilterResult(passed=passed, report=report)
         return UnitResult(body=result.model_dump(), adapter=self.result_adapter)

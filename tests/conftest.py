@@ -8,44 +8,12 @@ import pytest
 import yaml
 from bson import decode_file_iter
 
-from ampel.config.builder.DisplayOptions import DisplayOptions
-from ampel.config.builder.DistConfigBuilder import DistConfigBuilder
 from tests.data.make_test_data import (
     DATA_DIR,
     JOB_FILE_PATH,
     MONGO_PREFIX,
     patch_schema,
 )
-
-
-@pytest.fixture(scope="session")
-def testing_config(tmp_path_factory, pytestconfig):
-    """Path to an Ampel config file suitable for testing."""
-    config_path = tmp_path_factory.mktemp("config") / "testing-config.yaml"
-    if (config := pytestconfig.cache.get("testing_config", None)) is None:
-        # build a config from all available ampel distributions
-        cb = DistConfigBuilder(
-            DisplayOptions(verbose=False, debug=False),
-        )
-        cb.load_distributions()
-        config = cb.build_config(
-            stop_on_errors=0,
-            config_validator="ConfigValidator",
-            get_unit_env=False,
-        )
-        assert config is not None
-        # massage db settings for use with mongomock
-        for db in config["mongo"]["databases"]:
-            for collection in db["collections"]:
-                # remove unsuported storageEngine options
-                if "args" in collection and "storageEngine" in collection["args"]:
-                    collection["args"].pop("storageEngine")
-            # ensure that r and w modes share a client
-            db["role"]["r"] = db["role"]["w"]
-        pytestconfig.cache.set("testing_config", config)
-    with open(config_path, "w") as f:
-        yaml.safe_dump(config, f)
-    return config_path
 
 
 def get_collection_filename(collection_name: str) -> Path:
@@ -74,10 +42,25 @@ def collections() -> dict[str, dict]:
 
 
 @pytest.fixture
-def test_schema_path(tmp_path: Path) -> Path:
-    test_schema_path = tmp_path / "test_schema.yaml"
+def test_schema_path(tmp_path: Path, request) -> Path:
+    """Create a test schema file. Can be configured via pytest.mark.schema(remove_adapter=..., filename=...)
+
+    marker kwargs:
+      - remove_adapter: bool (default True) -> passed to patch_schema
+    """
+    marker = request.node.get_closest_marker("schema")
+    filename = "test_schema.yaml"
+    remove_adapter = True
+    iter_max = None
+    if marker:
+        if "remove_adapter" in marker.kwargs:
+            remove_adapter = bool(marker.kwargs["remove_adapter"])
+        if "iter_max" in marker.kwargs:
+            iter_max = marker.kwargs["iter_max"]
+
+    test_schema_path = tmp_path / filename
     with open(JOB_FILE_PATH) as f, test_schema_path.open("w") as g:
-        patch_schema(f, g)
+        patch_schema(f, g, remove_adapter=remove_adapter, iter_max=iter_max)
     return test_schema_path
 
 

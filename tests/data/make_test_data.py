@@ -61,7 +61,7 @@ def patch_schema(
             re.sub(
                 r"(mongo:\s*\n\s*prefix:\s*)\S+",
                 rf"\1{MONGO_PREFIX}",
-                text_in,
+                re.sub(r"(do_lasair_annotation:\s*)\S+", r"\1false", text_in),
             ),
         )
     )

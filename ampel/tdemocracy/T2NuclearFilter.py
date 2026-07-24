@@ -12,6 +12,7 @@ from typing import Literal
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import angular_separation
+from numpy.lib.recfunctions import append_fields
 from scipy.stats import chi2
 from tdemocracy import __version__ as model_version
 from tdemocracy.model import (
@@ -304,7 +305,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         distance_to_mean_pos = mean_pos.separation(
             SkyCoord(match_map["ra_rad"], match_map["dec_rad"], unit="rad")
         ).to_value("arcsec")
-        match_map_with_dist = np.lib.recfunctions.append_fields(
+        match_map_with_dist = append_fields(
             match_map,  # Original structured array
             "distance",  # Name(s) of new field(s) (string or list of strings)
             distance_to_mean_pos,  # Data for new field(s) (array-like or list of array-likes)

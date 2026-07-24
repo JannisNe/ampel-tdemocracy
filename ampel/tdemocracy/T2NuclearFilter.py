@@ -290,13 +290,9 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         # find the closest match
         try:
             match_map = np.array(
-                [
-                    (k, float(v["dist2transient"]), float(v["ra"]), float(v["dec"]))
-                    for k, v in matches.items()
-                ],
+                [(k, float(v["ra"]), float(v["dec"])) for k, v in matches.items()],
                 dtype=[
                     ("name", "<U30"),
-                    ("distance", "<f8"),
                     ("ra_rad", "<f8"),
                     ("dec_rad", "<f8"),
                 ],
@@ -305,22 +301,31 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
         except KeyError as e:
             raise e
 
-        best_match_id = np.argmin(match_map["distance"])
-        dist = match_map["distance"][best_match_id]
+        distance_to_mean_pos = mean_pos.separation(
+            SkyCoord(match_map["ra_rad"], match_map["dec_rad"], unit="rad")
+        ).to_value("arcsec")
+        match_map_with_dist = np.lib.recfunctions.append_fields(
+            match_map,  # Original structured array
+            "distance",  # Name(s) of new field(s) (string or list of strings)
+            distance_to_mean_pos,  # Data for new field(s) (array-like or list of array-likes)
+        )
+
+        best_match_id = np.argmin(match_map_with_dist["distance"])
+        dist = match_map_with_dist["distance"][best_match_id]
 
         # find matches that are probably the same object
         separations = (
             np.degrees(
                 angular_separation(
-                    match_map["ra_rad"][best_match_id],
-                    match_map["dec_rad"][best_match_id],
-                    match_map["ra_rad"],
-                    match_map["dec_rad"],
+                    match_map_with_dist["ra_rad"][best_match_id],
+                    match_map_with_dist["dec_rad"][best_match_id],
+                    match_map_with_dist["ra_rad"],
+                    match_map_with_dist["dec_rad"],
                 )
             )
             * 3600
         )
-        matched_catalogs = match_map["name"][
+        matched_catalogs = match_map_with_dist["name"][
             separations <= self.group_matches_within_arcsec
         ]
         passed = bool(dist <= md)
@@ -337,9 +342,9 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
 
         report.host = Host(
             name="T2NuclearFilter",
-            primary_source=match_map["name"][best_match_id],
-            ra=float(np.degrees(match_map["ra_rad"][best_match_id])),
-            dec=float(np.degrees(match_map["dec_rad"][best_match_id])),
+            primary_source=match_map_with_dist["name"][best_match_id],
+            ra=float(np.degrees(match_map_with_dist["ra_rad"][best_match_id])),
+            dec=float(np.degrees(match_map_with_dist["dec_rad"][best_match_id])),
             redshift=digest_redshifts.get("ampel_z"),
             distance=dist,
             sources=matched_catalogs.tolist(),

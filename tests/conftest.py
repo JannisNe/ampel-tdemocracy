@@ -52,15 +52,24 @@ def test_schema_path(tmp_path: Path, request) -> Path:
     filename = "test_schema.yaml"
     remove_adapter = True
     iter_max = None
+    do_lasair_annotations = False
     if marker:
         if "remove_adapter" in marker.kwargs:
             remove_adapter = bool(marker.kwargs["remove_adapter"])
+        if "do_lasair_annotations" in marker.kwargs:
+            do_lasair_annotations = bool(marker.kwargs["do_lasair_annotations"])
         if "iter_max" in marker.kwargs:
             iter_max = marker.kwargs["iter_max"]
 
     test_schema_path = tmp_path / filename
     with open(JOB_FILE_PATH) as f, test_schema_path.open("w") as g:
-        patch_schema(f, g, remove_adapter=remove_adapter, iter_max=iter_max)
+        patch_schema(
+            f,
+            g,
+            remove_adapter=remove_adapter,
+            iter_max=iter_max,
+            do_lasair_annotations=do_lasair_annotations,
+        )
     return test_schema_path
 
 

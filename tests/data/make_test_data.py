@@ -40,6 +40,7 @@ def patch_schema(
     fin: TextIOWrapper,
     fout: TextIOWrapper,
     remove_adapter: bool = True,
+    do_lasair_annotations: bool = False,
     iter_max: int | None = None,
 ) -> None:
     text_in = fin.read()
@@ -54,6 +55,9 @@ def patch_schema(
         )
         text_in = pattern.sub(lambda m: m.group(1) + str(int(iter_max)), text_in)
 
+    if not do_lasair_annotations:
+        text_in = re.sub(r"(do_lasair_annotation:\s*)\S+", r"\1false", text_in)
+
     fout.write(
         re.sub(
             r"(unit:\s*ParquetAlertLoader\s*\n\s*config:\s*\n\s*path:\s*)\S+",
@@ -61,7 +65,7 @@ def patch_schema(
             re.sub(
                 r"(mongo:\s*\n\s*prefix:\s*)\S+",
                 rf"\1{MONGO_PREFIX}",
-                re.sub(r"(do_lasair_annotation:\s*)\S+", r"\1false", text_in),
+                text_in,
             ),
         )
     )

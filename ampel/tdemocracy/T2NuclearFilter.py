@@ -356,23 +356,28 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit, LasairAnnotator):
         )
         assert report.host is not None  # this is just for mypy
 
-        if self.do_lasair_annotation and passed:
-            self.annotate(
-                str(report.object.id),
-                classification="nuclear",
-                version=self._version,
-                explanation=f"Extended host in LS DR10 within {self.match_dist_arcsec} arcsec",
-                classdict={
-                    "host_distance": report.host.distance,
-                    "mean_position_ra": report.mean_position.mean_ra,
-                    "mean_position_dec": report.mean_position.mean_dec,
-                    "mean_position_std": report.mean_position.std,
-                },
-            )
-        else:
-            self.logger.info(
-                f"Skipping Lasair annotation for {report.object.id} as requested"
-            )
+        if passed:
+            if self.do_lasair_annotation and passed:
+                annotation_succeeded = self.annotate(
+                    str(report.object.id),
+                    classification="nuclear",
+                    version=self._version,
+                    explanation=f"Extended host in LS DR10 within {self.match_dist_arcsec} arcsec",
+                    classdict={
+                        "host_distance": report.host.distance,
+                        "mean_position_ra": report.mean_position.mean_ra,
+                        "mean_position_dec": report.mean_position.mean_dec,
+                        "mean_position_std": report.mean_position.std,
+                    },
+                )
+                if not annotation_succeeded:
+                    self.logger.error(
+                        f"Lasair annotation failed for {report.object.id}!"
+                    )
+            else:
+                self.logger.info(
+                    f"Skipping Lasair annotation for {report.object.id} as requested"
+                )
 
         result = NuclearFilterResult(passed=passed, report=report)
         return UnitResult(body=result.model_dump(), adapter=self.result_adapter)

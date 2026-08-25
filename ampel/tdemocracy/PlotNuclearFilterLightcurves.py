@@ -2632,7 +2632,6 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
         # assess alerts per time and area
         time_observed = self._observation_time_max - self._observation_time_min
-        offsets.nuclear_filter_res.sum()
         obs = get_obs_log(self._observation_time_min, self._observation_time_max)
         obs["ddf"] = obs["observation_reason"].str.startswith("ddf")
         science_obs = obs[obs.science]
@@ -2674,8 +2673,8 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
         )
         for k in ["", "non_"]:
             for kk in ["alerts", "objects"]:
-                per_night_info[f"{k}ddf_al{kk}_per_area"] = (
-                    per_night_info[f"{k}ddf_al{kk}"] / per_night_info[f"{k}ddf_{kk}"]
+                per_night_info[f"{k}ddf_{kk}_per_area"] = (
+                    per_night_info[f"{k}ddf_{kk}"] / per_night_info[f"{k}ddf_{kk}"]
                 )
 
         night_dates = pd.to_datetime(per_night_info.index)
@@ -2699,7 +2698,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
         return {
             "offsets": offsets.to_dict(orient="records"),
-            "n_passed": offsets.passed.sum(),
+            "n_passed": offsets.nuclear_filter_res.sum(),
             "time_observed_days": time_observed.to_value("d"),
             "obj_per_days": per_night_info.to_dict(),
         }

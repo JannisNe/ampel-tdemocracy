@@ -2686,19 +2686,22 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     per_night_info[f"{k}ddf_{kk}"] / per_night_info[f"{k}ddf_{kk}"]
                 )
 
-        night_dates = pd.to_datetime(per_night_info.index)
+        night_dates = pd.to_datetime(per_night_info.index, format="%Y%m%d")
 
         for k in ["alerts", "objects"]:
             fig, ax = plt.subplots()
             ax.bar(
-                night_dates, per_night_info[f"non_ddf_{k}"], width=1, label="non DDF"
+                night_dates,
+                per_night_info[f"non_ddf_{k}"].values,
+                width=1,
+                label="non DDF",
             )
             ax.bar(
                 night_dates,
                 per_night_info[f"ddf_{k}"],
                 width=1,
                 label="DDF",
-                bottom=per_night_info[f"non_ddf_{k}"],
+                bottom=per_night_info[f"non_ddf_{k}"].values,
             )
             ax.legend()
             fig.tight_layout()
@@ -2707,7 +2710,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
         return {
             "offsets": offsets.to_dict(orient="records"),
-            "n_passed": offsets.nuclear_filter_res.sum(),
-            "time_observed_days": time_observed.to_value("d"),
-            "obj_per_days": per_night_info.to_dict(),
+            "n_passed": float(offsets.nuclear_filter_res.sum()),
+            "time_observed_days": float(time_observed.to_value("d")),
+            "obj_per_days": per_night_info.set_index(night_dates.astype(str)).to_dict(),
         }

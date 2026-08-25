@@ -2643,7 +2643,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 r["latest_mjd"] <= science_obs["obs_end_mjd"]
             )
             assert sum(obs_time_mask) == 1, f"{sum(obs_time_mask)} observations found!"
-            obs_id = obs_time_mask.index[obs_time_mask].iloc[0]
+            obs_id = obs_time_mask.index[obs_time_mask][0]
             offsets.loc[i, "ddf"] = science_obs.loc[obs_id, "ddf"]
             offsets.loc[i, "night"] = science_obs.loc[obs_id, "dayObs"]
 

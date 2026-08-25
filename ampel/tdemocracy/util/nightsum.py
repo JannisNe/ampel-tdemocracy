@@ -19,7 +19,7 @@ NON_SCIENCE_OBS_REASON = [
 
 @cachier()
 def get_nightly_summary(time: Time) -> pd.DataFrame:
-    t = time.to_datetime()
+    t = time.to_datetime(timezone=UTC)
     assert t < datetime.now(tz=UTC), "Can only query summaries from past nights!"
     url = f"{BASE_URL}/{t.year}/{t.strftime('%Y-%m-%d')}.parquet"
     try:

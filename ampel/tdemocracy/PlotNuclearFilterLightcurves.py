@@ -2520,10 +2520,10 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 "offset_all",
                 "offset_gr",
                 "nDiaSources",
+                "nuclear_filter_res",
                 "diaObjectId",
                 "latest_mjd",
                 "latest_filter",
-                "nuclear_filter_res",
                 "ls_type",
                 "milliquas_type",
                 *[f"{b}_sep_factor" for b in rubin_bands],
@@ -2632,7 +2632,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
         # assess alerts per time and area
         time_observed = self._observation_time_max - self._observation_time_min
-        offsets.passed.sum()
+        offsets.nuclear_filter_res.sum()
         obs = get_obs_log(self._observation_time_min, self._observation_time_max)
         obs["ddf"] = obs["observation_reason"].str.startswith("ddf")
         science_obs = obs[obs.science]

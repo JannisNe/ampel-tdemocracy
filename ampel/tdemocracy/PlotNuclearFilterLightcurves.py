@@ -2652,26 +2652,33 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             nn = [
                 ((science_obs["dayObs"] == n) & m).sum() * 9.6
                 for m in [science_obs.ddf, ~science_obs.ddf]
-            ] + [
-                (
-                    ((offsets["night"] == n) & m).sum(),
-                    len(
-                        offsets.loc[(offsets["night"] == n) & m, "diaObjectId"].unique()
-                    ),
-                )
-                for m in [offsets.ddf, ~offsets.ddf]
-            ]
+            ] + list(
+                np.array(
+                    [
+                        (
+                            ((offsets["night"] == n) & m).sum(),
+                            len(
+                                offsets.loc[
+                                    (offsets["night"] == n) & m, "diaObjectId"
+                                ].unique()
+                            ),
+                        )
+                        for m in [offsets.ddf, ~offsets.ddf]
+                    ]
+                ).flatten()
+            )
             per_night_info[n] = np.array(nn).flatten()
-        per_night_info = pd.DataFrame(
+        per_night_info = pd.DataFrame.from_dict(
             per_night_info,
             columns=[
                 "ddf_area",
+                "non_ddf_area",
                 "ddf_alerts",
                 "ddf_objects",
-                "non_ddf_area",
                 "non_ddf_alerts",
                 "non_ddf_objects",
             ],
+            orient="index",
         )
         for k in ["", "non_"]:
             for kk in ["alerts", "objects"]:

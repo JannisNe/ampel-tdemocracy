@@ -52,6 +52,7 @@ from ampel.tdemocracy.T2NuclearFilter import NuclearFilterResult
 from ampel.tdemocracy.util.catalog_column_info import (
     get_catalog_position_unit_map,
 )
+from ampel.tdemocracy.util.nightsum import get_obs_log
 from ampel.types import StockId, T3Send, UBson
 from ampel.view.TransientView import TransientView
 
@@ -1509,6 +1510,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
     check_all_dia_sources: bool = True
 
+    observation_time_min: str
+    observation_time_max: str
+
     def post_init(self) -> None:
         """
         Post-initialization routine for PlotTransientLightcurves.
@@ -1543,6 +1547,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
         self._ztf_cutout_session = None
         if self.ztf_archive_url is not None:
             self._ztf_cutout_session = BaseUrlSession(base_url=self.ztf_archive_url)
+
+        self._observation_time_min = Time(self.observation_time_min)
+        self._observation_time_max = Time(self.observation_time_max)
 
     ########################################
     # Collecting information from T2       #
@@ -2358,6 +2365,10 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                     else {}
                 )
                 assert isinstance(host_type, dict)
+                latest_dp = nuclear_filter_res.report.photometry[0]
+                for dp in nuclear_filter_res.report.photometry:
+                    if dp.time > latest_dp.time:
+                        latest_dp = dp
                 collected_info.append(
                     (
                         obj_pos.ra.to_value("deg"),
@@ -2366,6 +2377,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         gr_offset,
                         lsst_obj["body"]["nDiaSources"],
                         nuclear_filter_res.passed,
+                        nuclear_filter_res.report.object.id,
+                        latest_dp.time,
+                        latest_dp.band,
                         host_type.get("T2LSPhotoZTap", {}).get("type"),
                         host_type.get("milliquas", {}).get("broad_type"),
                         *(seps.get(f) for f in rubin_bands),
@@ -2506,6 +2520,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 "offset_all",
                 "offset_gr",
                 "nDiaSources",
+                "diaObjectId",
+                "latest_mjd",
+                "latest_filter",
                 "nuclear_filter_res",
                 "ls_type",
                 "milliquas_type",
@@ -2613,4 +2630,76 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             fig.savefig(self._out_dir / "offset_chi2.pdf")
             plt.close()
 
-        return offsets.to_dict(orient="records")
+        # assess alerts per time and area
+        time_observed = self._observation_time_max - self._observation_time_min
+        offsets.passed.sum()
+        obs = get_obs_log(self._observation_time_min, self._observation_time_max)
+        obs["ddf"] = obs["observation_reason"].str.startswith("ddf")
+        science_obs = obs[obs.science]
+
+        # associate observation to alert
+        for i, r in offsets.iterrows():
+            obs_time_mask = (r["latest_mjd"] >= science_obs["obs_start_mjd"]) & (
+                r["latest_mjd"] <= science_obs["obs_end_mjd"]
+            )
+            assert sum(obs_time_mask) == 1, f"{sum(obs_time_mask)} observations found!"
+            obs_id = obs_time_mask.index[obs_time_mask].iloc[0]
+            offsets.loc[i, "ddf"] = science_obs.loc[obs_id, "ddf"]
+            offsets.loc[i, "night"] = science_obs.loc[obs_id, "dayObs"]
+
+        # area per night
+        per_night_info = {}
+        for n in science_obs.dayObs.unique():
+            nn = [
+                (
+                    ((science_obs["dayObs"] == n) & m).sum() * 9.6,
+                    ((offsets["night"] == n) & m).sum(),
+                    len(
+                        offsets.loc[(offsets["night"] == n) & m, "diaObjectId"].unique()
+                    ),
+                )
+                for m in [science_obs.ddf, ~science_obs.ddf]
+            ]
+            per_night_info[n] = np.array(nn).flatten()
+        per_night_info = pd.DataFrame(
+            per_night_info,
+            columns=[
+                "ddf_area",
+                "ddf_alerts",
+                "ddf_objects",
+                "non_ddf_area",
+                "non_ddf_alerts",
+                "non_ddf_objects",
+            ],
+        )
+        for k in ["", "non_"]:
+            for kk in ["alerts", "objects"]:
+                per_night_info[f"{k}ddf_al{kk}_per_area"] = (
+                    per_night_info[f"{k}ddf_al{kk}"] / per_night_info[f"{k}ddf_{kk}"]
+                )
+
+        night_dates = pd.to_datetime(per_night_info.index)
+
+        for k in ["alerts", "objects"]:
+            fig, ax = plt.subplots()
+            ax.bar(
+                night_dates, per_night_info[f"non_ddf_{k}"], width=1, label="non DDF"
+            )
+            ax.bar(
+                night_dates,
+                per_night_info[f"ddf_{k}"],
+                width=1,
+                label="DDF",
+                bottom=per_night_info[f"non_ddf_{k}"],
+            )
+            ax.legend()
+            fig.tight_layout()
+            fig.savefig(self._out_dir / f"{k}_obs_hist.pdf")
+            plt.close()
+
+        return {
+            "offsets": offsets.to_dict(orient="records"),
+            "n_passed": offsets.passed.sum(),
+            "time_observed_days": time_observed.to_value("d"),
+            "obj_per_days": per_night_info.to_dict(),
+        }

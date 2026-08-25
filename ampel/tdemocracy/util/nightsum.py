@@ -1,3 +1,6 @@
+from datetime import UTC, datetime
+from urllib.error import HTTPError
+
 import numpy as np
 import pandas as pd
 from astropy.time import Time, TimeDelta
@@ -17,8 +20,14 @@ NON_SCIENCE_OBS_REASON = [
 @cachier()
 def get_nightly_summary(time: Time) -> pd.DataFrame:
     t = time.to_datetime()
+    assert t < datetime.now(tz=UTC), "Can only query summaries from past nights!"
     url = f"{BASE_URL}/{t.year}/{t.strftime('%Y-%m-%d')}.parquet"
-    return pd.read_parquet(url)
+    try:
+        return pd.read_parquet(url)
+    except HTTPError as e:
+        if "404: Not Found" not in str(e):
+            raise e
+        return pd.DataFrame([])
 
 
 def get_obs_log(start_time: Time, end_time: Time) -> pd.DataFrame:

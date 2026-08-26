@@ -187,7 +187,7 @@ def fig_from_fluxtable(
         if (host := nuclear_filter_res.report.host) is not None:
             mp = nuclear_filter_res.report.mean_position
             info.append(
-                f"Host dist: {host.distance:.2f}  (±{mp.circularized_error:.2f} {mp.std:.2f})"
+                f"Host dist: {host.distance:.2f}  (±{mp.circularized_error:.2f} {mp.std:.2f}) N={mp.n_sources}"
             )
             info.append("Types:")
             assert isinstance(host.info, dict)

@@ -1,6 +1,6 @@
 [project]
 name = "ampel-tdemocracy"
-version = "0.0.6"
+version = "0.0.7"
 description = "Selecting candidate nuclear transients from the Rubin alert stream for tde TDEmocracy project "
 requires-python = ">=3.12, <4"
 authors = [
@@ -23,10 +23,10 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "tdemocracy (>=0.0.5,<0.1)",
+    "tdemocracy (>=0.0.8,<0.1.0)",
     "ampel-hu-astro[ztf] (>=0.10.0a28)",
     "ampel-lsst (>=0.10.1a18,<0.11)",
-    "ampel-core (>=0.10.6a23,<0.11)",
+    "ampel-core (>=0.10.6a24,<0.11)",
     "ampel-catalogmatch (>=0.10.0a3,<0.11)",
     "lasair (>=0.1.4,<0.2.0)",
     "py-avro-schema (>=3.8.2,<4.0.0)",

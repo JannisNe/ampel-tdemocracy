@@ -151,10 +151,22 @@ def test_t2_nuclear_filter(collections, test_schema, mock_context):  # noqa: ARG
         ]:
             if isinstance(resd := resb["report"][attr], dict):
                 for k, resv in resd.items():
+                    # no n_sources in test data
+                    if k == "n_sources":
+                        continue
                     refv = reference["report"][attr][k]
                     msg = f"{attr}.{k} failed!"
+
                     if (attr == "host") and (k in ["sources", "info"]):
                         assert sorted(resv) == sorted(refv), msg
+
+                    # ddof=0 for test data in std calculation so correct
+                    elif (attr == "mean_position") and (k == "std"):
+                        resv_corr = resv * np.sqrt(
+                            (resd["n_sources"] - 1) / resd["n_sources"]
+                        )
+                        assert resv_corr == pytest.approx(refv, rel=1e-8), msg
+
                     else:
                         assert resv == pytest.approx(refv, rel=1e-8), msg
 

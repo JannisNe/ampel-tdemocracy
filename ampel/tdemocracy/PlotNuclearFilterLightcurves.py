@@ -187,7 +187,7 @@ def fig_from_fluxtable(
         if (host := nuclear_filter_res.report.host) is not None:
             mp = nuclear_filter_res.report.mean_position
             info.append(
-                f"Host dist: {host.distance:.2f}  (±{mp.circularized_error:.2f} {mp.std:.2f})"
+                f"Host dist: {host.distance:.2f}  (±{mp.circularized_error:.2f} {mp.std:.2f}) N={mp.n_sources}"
             )
             info.append("Types:")
             assert isinstance(host.info, dict)
@@ -489,7 +489,7 @@ def fig_from_fluxtable(
                     color=BANDPASSES[fid]["c"],
                     fmt=".",
                     markersize=9,
-                    label=BANDPASSES[fid]["label"],
+                    label=BANDPASSES[fid]["label"] if mec == "none" else "",
                     mec=mec,
                     mew=0.5,
                     zorder=2,
@@ -515,7 +515,6 @@ def fig_from_fluxtable(
                     color=BANDPASSES[fid]["c"],
                     fmt="x",
                     markersize=9,
-                    label=BANDPASSES[fid]["label"],
                     mec=mec,
                     mew=0.5,
                     zorder=2,
@@ -2380,6 +2379,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         nuclear_filter_res.report.object.id,
                         latest_dp.time,
                         latest_dp.band,
+                        nuclear_filter_res.report.mean_position.std,
+                        nuclear_filter_res.report.mean_position.circularized_error,
+                        nuclear_filter_res.report.mean_position.n_sources,
                         host_type.get("T2LSPhotoZTap", {}).get("type"),
                         host_type.get("milliquas", {}).get("broad_type"),
                         *(seps.get(f) for f in rubin_bands),
@@ -2524,6 +2526,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 "diaObjectId",
                 "latest_mjd",
                 "latest_filter",
+                "std",
+                "circ_err",
+                "n_sources",
                 "ls_type",
                 "milliquas_type",
                 *[f"{b}_sep_factor" for b in rubin_bands],
@@ -2647,6 +2652,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             offsets.loc[i, "night"] = science_obs.loc[obs_id, "dayObs"]
 
         # area per night
+        passed_offsets = offsets[offsets.nuclear_filter_res]
         per_night_info = {}
         for n in science_obs.dayObs.unique():
             nn = [
@@ -2656,14 +2662,14 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 np.array(
                     [
                         (
-                            ((offsets["night"] == n) & m).sum(),
+                            ((passed_offsets["night"] == n) & m).sum(),
                             len(
-                                offsets.loc[
-                                    (offsets["night"] == n) & m, "diaObjectId"
+                                passed_offsets.loc[
+                                    (passed_offsets["night"] == n) & m, "diaObjectId"
                                 ].unique()
                             ),
                         )
-                        for m in [offsets.ddf, ~offsets.ddf]
+                        for m in [passed_offsets.ddf, ~passed_offsets.ddf]
                     ]
                 ).flatten()
             )
@@ -2712,6 +2718,46 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 fig.tight_layout()
                 fig.savefig(self._out_dir / f"{k}{kk}_obs_hist.pdf")
                 plt.close()
+
+        # typical distances and uncertainties
+        fig, ax = plt.subplots()
+        ax.hist(offsets["std"], density=True)
+        ax.set_xlabel(r"$\sigma$")
+        ax.set_ylabel("density")
+        fig.tight_layout()
+        fig.savefig(self._out_dir / "std_hist.pdf")
+        plt.close()
+
+        fig, ax = plt.subplots()
+        ax.hist(offsets["std"] / np.sqrt(offsets["n_sources"]), density=True)
+        ax.set_xlabel(r"$\sigma / \sqrt{N_{\text{sources}}}$")
+        ax.set_ylabel("density")
+        fig.tight_layout()
+        fig.savefig(self._out_dir / "mean_std_hist.pdf")
+        plt.close()
+
+        fig, ax = plt.subplots()
+        ax.hist(offsets["circ_err"], density=True)
+        ax.set_xlabel(r"$u_\mathrm{circ}$")
+        ax.set_ylabel("density")
+        fig.tight_layout()
+        fig.savefig(self._out_dir / "u_circ_hist.pdf")
+        plt.close()
+
+        xx = np.linspace(0, 0.06)
+        fig, ax = plt.subplots()
+        ax.scatter(
+            offsets["std"] / np.sqrt(offsets["n_sources"]),
+            offsets["circ_err"],
+            alpha=0.5,
+            ec="none",
+        )
+        ax.plot(xx, xx, ls=":", color="k", alpha=0.3)
+        ax.set_xlabel(r"$\sigma / \sqrt{N_{\text{sources}}}$")
+        ax.set_ylabel(r"$u_\mathrm{circ}$")
+        fig.tight_layout()
+        fig.savefig(self._out_dir / "mean_std_vs_u_circ_hist.pdf")
+        plt.close()
 
         return {
             "offsets": offsets.to_dict(orient="records"),

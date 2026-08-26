@@ -7,6 +7,7 @@
 # Last Modified By:    jannis.necker@gmail.com
 
 from collections.abc import Sequence
+from importlib.metadata import version as pkgversion
 from typing import Literal
 
 import numpy as np
@@ -61,7 +62,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
 
     result_adapter: UnitModel | None = None
 
-    version = "0.0.1"
+    version = str(pkgversion("ampel-tdemocracy"))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -233,7 +234,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             np.sqrt(sum((normed_weights * circularized_errors) ** 2)) * 3600
         )
         separations_to_mean = coords.separation(mean_pos).to_value("arcsec")
-        std = np.std(separations_to_mean)
+        std = np.std(separations_to_mean, ddof=1)
 
         mean_ra = mean_pos.ra.to_value("deg")
         mean_dec = mean_pos.dec.to_value("deg")
@@ -250,6 +251,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
                 mean_dec=mean_dec,
                 std=float(std),
                 circularized_error=float(circularized_mean_error),
+                n_sources=len(good_sources),
             ),
             host=None,
         )

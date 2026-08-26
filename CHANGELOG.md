@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.7
+### Filter change:
+The sample standard deviation was previously computet with a degree-of-freedom of 0, which is not correct. It is now computed with a degree-of-freedom of 1 (see [this commit](fe2e52c4032c617fe5f9fc2091c1d9fa5bee71bd)).
+
+The filter version reported in the `T2NuclearReport` is now the version of the package (see [this commit](6963dbf916ddd950b2d7649699e3b386a8efd692)).
+
 ## v0.0.6
 
 ### Filter change:

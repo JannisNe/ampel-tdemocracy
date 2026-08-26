@@ -233,7 +233,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             np.sqrt(sum((normed_weights * circularized_errors) ** 2)) * 3600
         )
         separations_to_mean = coords.separation(mean_pos).to_value("arcsec")
-        std = np.std(separations_to_mean)
+        std = np.std(separations_to_mean, ddof=1)
 
         mean_ra = mean_pos.ra.to_value("deg")
         mean_dec = mean_pos.dec.to_value("deg")

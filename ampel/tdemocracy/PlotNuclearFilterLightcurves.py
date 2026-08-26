@@ -2668,7 +2668,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 ).flatten()
             )
             per_night_info[n] = np.array(nn).flatten()
-        per_night_info = pd.DataFrame.from_dict(
+        per_night_info_df = pd.DataFrame.from_dict(
             per_night_info,
             columns=[
                 "ddf_area",
@@ -2682,27 +2682,28 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
         )
         for k in ["", "non_"]:
             for kk in ["alerts", "objects"]:
-                per_night_info[f"{k}ddf_{kk}_per_area"] = (
-                    per_night_info[f"{k}ddf_{kk}"] / per_night_info[f"{k}ddf_area"]
+                per_night_info_df[f"{k}ddf_{kk}_per_area"] = (
+                    per_night_info_df[f"{k}ddf_{kk}"]
+                    / per_night_info_df[f"{k}ddf_area"]
                 )
 
-        night_dates = pd.to_datetime(per_night_info.index, format="%Y%m%d")
+        night_dates = pd.to_datetime(per_night_info_df.index, format="%Y%m%d")
 
         for kk in ["", "_per_area"]:
             for k in ["alerts", "objects"]:
                 fig, ax = plt.subplots()
                 ax.bar(
                     night_dates,
-                    per_night_info[f"non_ddf_{k}{kk}"].values,
+                    per_night_info_df[f"non_ddf_{k}{kk}"].to_list(),
                     width=1,
                     label="non DDF",
                 )
                 ax.bar(
                     night_dates,
-                    per_night_info[f"ddf_{k}{kk}"],
+                    per_night_info_df[f"ddf_{k}{kk}"].to_list(),
                     width=1,
                     label="DDF",
-                    bottom=per_night_info[f"non_ddf_{k}{kk}"].values,
+                    bottom=per_night_info_df[f"non_ddf_{k}{kk}"].to_list(),
                 )
                 label = " per deg$^{2}$" if kk == "_per_area" else ""
                 ax.set_ylabel(k.capitalize() + label)
@@ -2716,5 +2717,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             "offsets": offsets.to_dict(orient="records"),
             "n_passed": float(offsets.nuclear_filter_res.sum()),
             "time_observed_days": float(time_observed.to_value("d")),
-            "obj_per_days": per_night_info.set_index(night_dates.astype(str)).to_dict(),
+            "obj_per_days": per_night_info_df.set_index(
+                night_dates.astype(str)
+            ).to_dict(),
         }

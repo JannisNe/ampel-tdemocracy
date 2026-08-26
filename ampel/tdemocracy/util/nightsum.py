@@ -42,9 +42,11 @@ def get_obs_log(start_time: Time, end_time: Time) -> pd.DataFrame:
     obs_start = pd.to_datetime(obs["obs_start"], format="mixed")
     obs_end = pd.to_datetime(obs["obs_end"], format="mixed")
     m = (obs_end >= start_time.to_datetime()) & (obs_start <= end_time.to_datetime())
-    obs = obs[m]  # type: pd.DataFrame
+    selected_obs = obs[m]  # type: pd.DataFrame
 
     # mark science observations
-    obs["science"] = ~obs["observation_reason"].isin(NON_SCIENCE_OBS_REASON)
+    selected_obs["science"] = ~selected_obs["observation_reason"].isin(
+        NON_SCIENCE_OBS_REASON
+    )
 
-    return obs
+    return selected_obs

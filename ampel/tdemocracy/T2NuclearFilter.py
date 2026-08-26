@@ -7,6 +7,7 @@
 # Last Modified By:    jannis.necker@gmail.com
 
 from collections.abc import Sequence
+from importlib.metadata import version as pkgversion
 from typing import Literal
 
 import numpy as np
@@ -61,7 +62,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
 
     result_adapter: UnitModel | None = None
 
-    version = "0.0.1"
+    version = str(pkgversion("ampel-tdemocracy"))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -2683,30 +2683,34 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
         for k in ["", "non_"]:
             for kk in ["alerts", "objects"]:
                 per_night_info[f"{k}ddf_{kk}_per_area"] = (
-                    per_night_info[f"{k}ddf_{kk}"] / per_night_info[f"{k}ddf_{kk}"]
+                    per_night_info[f"{k}ddf_{kk}"] / per_night_info[f"{k}ddf_area"]
                 )
 
         night_dates = pd.to_datetime(per_night_info.index, format="%Y%m%d")
 
-        for k in ["alerts", "objects"]:
-            fig, ax = plt.subplots()
-            ax.bar(
-                night_dates,
-                per_night_info[f"non_ddf_{k}"].values,
-                width=1,
-                label="non DDF",
-            )
-            ax.bar(
-                night_dates,
-                per_night_info[f"ddf_{k}"],
-                width=1,
-                label="DDF",
-                bottom=per_night_info[f"non_ddf_{k}"].values,
-            )
-            ax.legend()
-            fig.tight_layout()
-            fig.savefig(self._out_dir / f"{k}_obs_hist.pdf")
-            plt.close()
+        for kk in ["", "_per_area"]:
+            for k in ["alerts", "objects"]:
+                fig, ax = plt.subplots()
+                ax.bar(
+                    night_dates,
+                    per_night_info[f"non_ddf_{k}{kk}"].values,
+                    width=1,
+                    label="non DDF",
+                )
+                ax.bar(
+                    night_dates,
+                    per_night_info[f"ddf_{k}{kk}"],
+                    width=1,
+                    label="DDF",
+                    bottom=per_night_info[f"non_ddf_{k}{kk}"].values,
+                )
+                label = " per deg$^{2}$" if kk == "_per_area" else ""
+                ax.set_ylabel(k.capitalize() + label)
+                ax.legend()
+                ax.tick_params("x", rotation=60, rotation_mode="xtick")
+                fig.tight_layout()
+                fig.savefig(self._out_dir / f"{k}{kk}_obs_hist.pdf")
+                plt.close()
 
         return {
             "offsets": offsets.to_dict(orient="records"),

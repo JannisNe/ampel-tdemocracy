@@ -250,6 +250,7 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
                 mean_dec=mean_dec,
                 std=float(std),
                 circularized_error=float(circularized_mean_error),
+                n_sources=len(good_sources),
             ),
             host=None,
         )

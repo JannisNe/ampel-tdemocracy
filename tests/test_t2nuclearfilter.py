@@ -5,6 +5,7 @@ from ampel.content.DataPoint import DataPoint
 from ampel.content.T1Document import T1Document
 from ampel.log.AmpelLogger import DEBUG, AmpelLogger
 from ampel.model.DPSelection import DPSelection
+from ampel.secret.NamedSecret import NamedSecret
 from ampel.struct.UnitResult import UnitResult
 from ampel.tdemocracy.T2NuclearFilter import T2NuclearFilter
 from ampel.util.mappings import get_by_path
@@ -73,6 +74,7 @@ def test_t2_nuclear_filter(collections, test_schema, mock_context):  # noqa: ARG
         "Catalog matching config changed and can not be tested!"
     )
     t2_config["t2_dependency"] = []
+    t2_config["lasair_api_token"] = NamedSecret(label="lasair/api_token", value="dummy")
     logger = AmpelLogger.get_logger(console=dict(level=DEBUG))
     t2_nuclear_filter = T2NuclearFilter(logger=logger, **t2_config)
     unique_stocks = [d["stock"] for d in collections["stock"]]

@@ -1,6 +1,6 @@
 [project]
 name = "ampel-tdemocracy"
-version = "0.0.7"
+version = "0.0.8"
 description = "Selecting candidate nuclear transients from the Rubin alert stream for tde TDEmocracy project "
 requires-python = ">=3.12, <4"
 authors = [
@@ -23,11 +23,12 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "tdemocracy (>=0.0.8,<0.1.0)",
-    "ampel-hu-astro[ztf] (>=0.10.0a28)",
-    "ampel-lsst (>=0.10.1a18,<0.11)",
+
+    "tdemocracy (>=0.0.8,<0.1)",
+    "ampel-lsst (>=0.10.1a25,<0.11)",
     "ampel-core (>=0.10.6a24,<0.11)",
-    "ampel-catalogmatch (>=0.10.0a3,<0.11)",
+    "ampel-catalogmatch (>=0.10.0a5,<0.11)",
+    "ampel-hu-astro[ztf] (>=0.10.0a28)",
     "lasair (>=0.1.4,<0.2.0)",
     "py-avro-schema (>=3.8.2,<4.0.0)",
     "pre-commit (>=4.6.0,<5.0.0)",
@@ -35,6 +36,9 @@ dependencies = [
     "astropy-healpix (>=2.0.0,<3.0.0)",
     "cachier (>=4.2.0,<5.0.0)",
     "ligo-skymap (>=2.5.4,<3.0.0)",
+    "ampel-kafka (>=0.10.0a2,<0.11.0)",
+    "backoff (>=2.2.1,<3.0.0)",
+    "ampel-lasair (>=0.10.0a1,<0.11.0)",
 ]
 
 [dependency-groups]
@@ -67,6 +71,9 @@ filterwarnings = [
     "ignore:pkg_resources is deprecated:DeprecationWarning",
 ]
 testpaths = "tests"
+markers = [
+    "schema: modify test schema",
+]
 
 [tool.mypy]
 namespace_packages = true

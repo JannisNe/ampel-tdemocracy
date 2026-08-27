@@ -30,7 +30,8 @@ from ampel.abstract.AbsTiedStateT2Unit import AbsTiedStateT2Unit
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.content.DataPoint import DataPoint
 from ampel.content.T1Document import T1Document
-from ampel.contrib.hu.t0.DecentVroFilter import RUBIN_ALERT_FLAGS
+from ampel.lasair.LasairAnnotator import LasairAnnotator
+from ampel.lsst.t0.DecentVroFilter import RUBIN_ALERT_FLAGS
 from ampel.model.StateT2Dependency import StateT2Dependency
 from ampel.model.UnitModel import UnitModel
 from ampel.struct.UnitResult import UnitResult
@@ -47,7 +48,7 @@ class NuclearFilterResult(AmpelBaseModel):
     report: NuclearTransientReport
 
 
-class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
+class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit, LasairAnnotator):
     match_dist_arcsec: float
     group_matches_within_arcsec: float = 0.5
     min_reliability: float = 0.8
@@ -61,6 +62,9 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
     tabulator: Sequence[UnitModel] = [UnitModel(unit="LSSTT2Tabulator")]
 
     result_adapter: UnitModel | None = None
+    do_lasair_annotation: bool = True
+    lasair_topic: Literal["tdemocracy-nuclear-stream"] = "tdemocracy-nuclear-stream"  # type: ignore
+    lasair_version = "lsst"
 
     version = str(pkgversion("ampel-tdemocracy"))
 
@@ -353,6 +357,30 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit):
             sources=matched_catalogs.tolist(),
             info=type_info,
         )
+        assert report.host is not None  # this is just for mypy
+
+        if passed:
+            if self.do_lasair_annotation and passed:
+                annotation_succeeded = self.annotate(
+                    str(report.object.id),
+                    classification="nuclear",
+                    version=self.version,
+                    explanation=f"Extended host in LS DR10 within {self.match_dist_arcsec} arcsec",
+                    classdict={
+                        "host_distance": report.host.distance,
+                        "mean_position_ra": report.mean_position.mean_ra,
+                        "mean_position_dec": report.mean_position.mean_dec,
+                        "mean_position_std": report.mean_position.std,
+                    },
+                )
+                if not annotation_succeeded:
+                    self.logger.error(
+                        f"Lasair annotation failed for {report.object.id}!"
+                    )
+            else:
+                self.logger.info(
+                    f"Skipping Lasair annotation for {report.object.id} as requested"
+                )
 
         result = NuclearFilterResult(passed=passed, report=report)
         return UnitResult(body=result.model_dump(), adapter=self.result_adapter)

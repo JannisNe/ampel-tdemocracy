@@ -253,7 +253,7 @@ task:
                           label: scimma/neckerja/user
                         password:
                           label: scimma/neckerja/password
-                      topic: Ampel-TDEmocracy.nucelar-stream-dev
+                      topic: Ampel-TDEmocracy.nuclear-stream
                       model: tdemocracy.model.NuclearTransientReport
                       message_path: report
                       condition_path: passed

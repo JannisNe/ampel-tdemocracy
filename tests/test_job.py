@@ -9,7 +9,9 @@ from ampel.tdemocracy.T2NuclearFilter import T2NuclearFilter
 
 
 @pytest.mark.schema(remove_adapter=False, iter_max=100)
-def test_run_job(test_schema_path: Path, testing_config: Path, monkeypatch) -> None:
+def test_run_job(
+    test_schema_path: Path, testing_config: Path, monkeypatch, dummy_secrets: Path
+) -> None:
     # patch hopskotch stream
     sent_results = []
 
@@ -30,7 +32,14 @@ def test_run_job(test_schema_path: Path, testing_config: Path, monkeypatch) -> N
     parser = cmd.get_parser()
     args = vars(
         parser.parse_args(
-            ["--schema", str(test_schema_path), "--config", str(testing_config)]
+            [
+                "--schema",
+                str(test_schema_path),
+                "--config",
+                str(testing_config),
+                "--secrets",
+                str(dummy_secrets),
+            ]
         )
     )
     cmd.run(args, unknown_args=())

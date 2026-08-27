@@ -56,14 +56,14 @@ tenacity = ">=9.1.2,<10.0.0"
 
 [[package]]
 name = "ampel-core"
-version = "0.10.6a23"
+version = "0.10.6a24"
 description = "Alice in Modular Provenance-Enabled Land"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "ampel_core-0.10.6a23-py3-none-any.whl", hash = "sha256:5f1f166ae7737454316b5e68343838c9c6a2111ac0966848f0696e38fdab2461"},
-    {file = "ampel_core-0.10.6a23.tar.gz", hash = "sha256:ae1d12f64385cac00d70b48d1eb2263fbe56840c9c09eeabfcce40e35bbffce2"},
+    {file = "ampel_core-0.10.6a24-py3-none-any.whl", hash = "sha256:df38df08b8b5353cb2798cdc63fc790a0672b19e8c29bf4768d71d367fb67a68"},
+    {file = "ampel_core-0.10.6a24.tar.gz", hash = "sha256:bc0e79e72b1d1668bff0898c081eb7031abafe8f91c1bb073dd9ab1da88d98ca"},
 ]
 
 [package.dependencies]
@@ -3949,14 +3949,14 @@ files = [
 
 [[package]]
 name = "tdemocracy"
-version = "0.0.5"
+version = "0.0.8"
 description = "Listen to nuclear alerts from the Vera Rubin Observatory for the TDEmocracy project"
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "tdemocracy-0.0.5-py3-none-any.whl", hash = "sha256:0f91dc7f0575abcd8b2316c5c8d0720c162e8736d6812ce0518fa3e018937f45"},
-    {file = "tdemocracy-0.0.5.tar.gz", hash = "sha256:d1d3dfe98425d90cf4b991ee5c947d54d65419a90fd1f3d607fdbd36030d1089"},
+    {file = "tdemocracy-0.0.8-py3-none-any.whl", hash = "sha256:30ac1b85df42f60de4a772697bcb0fa5768d2312f6365dc9e53e26da7267f5bb"},
+    {file = "tdemocracy-0.0.8.tar.gz", hash = "sha256:aa945ba0f88d2c6761bf31c15d2f096d277bd5b1c7ea73cab8311cd3c65b3808"},
 ]
 
 [package.dependencies]
@@ -4519,4 +4519,4 @@ remote = ["fsspec (>=2023.10.0)", "obstore (>=0.5.1)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <4"
-content-hash = "66badae083cc9bab6dfee212c4dea76dce336da23cf3a7698f2e76e7ccd7f7b8"
+content-hash = "01456be5b01d1b63adb3efee02580f5879eea08202de57f4058be821cde5a419"

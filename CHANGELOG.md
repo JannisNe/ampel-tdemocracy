@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.7
+### Filter change:
+The sample standard deviation was previously computet with a degree-of-freedom of 0, which is not correct. It is now computed with a degree-of-freedom of 1 (see [this commit](fe2e52c4032c617fe5f9fc2091c1d9fa5bee71bd)).
+
+The filter version reported in the `T2NuclearReport` is now the version of the package (see [this commit](6963dbf916ddd950b2d7649699e3b386a8efd692)).
+
+## v0.0.6
+
+### Filter change:
+The `T2NuclearFilter` now calculates the host distance based on the calculated mean position of the good (unflagged) datapoints belonging to the object, not the `diaObject`'s position! (see [this commit](https://github.com/JannisNe/ampel-tdemocracy/commit/a90b581270e9069e4a4855c180244175c4205996)) 
+
 ## v0.0.5
 ### Filter change:
 The `DecentVroFilter` now only uses positive detections, leading to more data being ignored (see [this commit](https://github.com/JannisNe/ampel-tdemocracy/commit/c4acba30f5462f096ec4a4ffedac3d7de6543d4f))

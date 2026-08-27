@@ -226,6 +226,9 @@ task:
                       unit: T2LSPhotoZTap
               - unit: T2NuclearFilter
                 config:
+                  do_lasair_annotation: true
+                  lasair_api_token:
+                    label: lasair/api_token
                   match_dist_arcsec: 0.2
                   t2_dependency:
                     - config: '%T2CatalogMatch_TDEmocracy'

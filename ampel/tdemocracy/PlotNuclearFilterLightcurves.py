@@ -2597,7 +2597,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             )
             for b, ax in zip(rubin_bands, axs, strict=True):
                 for m, t, a in zip(
-                    [~lsst_mask, lsst_mask], ["step", "bar"], [1, 0.8], strict=True
+                    [lsst_mask, ~lsst_mask], ["bar", "step"], [0.8, 1], strict=True
                 ):
                     g = stacked_table[(stacked_table["band"] == b) & m]
                     if len(g) > 0:
@@ -2609,7 +2609,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         ax.hist(
                             chi2_values,
                             density=True,
-                            label=b,
+                            label=b if t == "bar" else "pre-LSST",
                             color=BANDPASSES[b]["c"],
                             bins=bins,
                             cumulative=True,
@@ -2619,18 +2619,18 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         if t == "bar":
                             ks_res = kstest(chi2_values, chi2_2d_cdf)
                             ax.annotate(
-                                f"{ks_res.pvalue:.1e}",
-                                xy=(0, 1),
+                                f"p={ks_res.pvalue:.1e}",
+                                xy=(1, 0),
                                 xycoords="axes fraction",
-                                xytext=(2, -2),
+                                xytext=(-2, 2),
                                 textcoords="offset points",
-                                ha="left",
-                                va="top",
+                                ha="right",
+                                va="bottom",
                             )
                             xx = np.linspace(0, 5, 100)
                             yy = chi2_2d_cdf(xx)
                             ax.plot(xx, yy, ls="-", color="k")
-                        ax.legend(frameon=False)
+                        ax.legend(frameon=False, ncols=2)
 
             xlim = axs[-1].get_xlim()
             axs[-1].set_xlabel(r"$\Psi^2 / \delta_\mathrm{2d}^2$")

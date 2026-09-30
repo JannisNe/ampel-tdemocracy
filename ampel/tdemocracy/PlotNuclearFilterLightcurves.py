@@ -2339,6 +2339,9 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         ],
                     }
                 )
+                position_table["g_i_color"] = np.median(
+                    position_table[position_table["band"] == "lssti"]["flux"]
+                ) / np.median(position_table[position_table["band"] == "lsstg"]["flux"])
                 selm = position_table["selected"]
                 seps = {}
                 for f in np.unique(position_table["band"]):
@@ -2589,7 +2592,28 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
 
         if any(calibration_sources):
             stacked_table = vstack(list(calibration_sources.values()))
+
+            # calculate circularized error
+            stacked_table["err_circ"] = (
+                np.sqrt(stacked_table["raErr"] ** 2 + stacked_table["decErr"] ** 2)
+                * 3600
+            )
+            stacked_table["weighted_host_sep"] = (
+                stacked_table["host_sep"] / stacked_table["err_circ"]
+            )
+
             lsst_mask = stacked_table["time"] > Time("2026-07-01").mjd
+
+            fig, ax = plt.subplots()
+            ax.scatter(
+                stacked_table["host_sep"] / stacked_table["err_circ"],
+                stacked_table["g_i_color"],
+            )
+            ax.set_xlabel(r"$\Psi / \delta_\mathrm{2d}$")
+            ax.set_ylabel(r"F_\mathrm{i} / F_\mathrm{g}")
+            fig.savefig(self._out_dir / "offset_vs_color.pdf")
+            plt.close()
+
             chi2_2d_cdf = chi2(2).cdf
 
             fig, axs = plt.subplots(
@@ -2601,8 +2625,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 ):
                     g = stacked_table[(stacked_table["band"] == b) & m]
                     if len(g) > 0:
-                        err_2d_sq = (g["raErr"] ** 2 + g["decErr"] ** 2) * 3600**2
-                        chi2_values = g["host_sep"] ** 2 / err_2d_sq
+                        chi2_values = g["host_sep"] ** 2 / g["err_circ"] ** 2
                         bins = np.linspace(0, min([5, max(chi2_values)]))
                         if max(chi2_values) > 5:
                             bins = np.array([*list(bins), max(chi2_values)])

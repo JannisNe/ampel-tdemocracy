@@ -2339,9 +2339,11 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         ],
                     }
                 )
-                position_table["g_i_color"] = np.median(
+                med_g_i_color = np.median(
                     position_table[position_table["band"] == "lssti"]["flux"]
                 ) / np.median(position_table[position_table["band"] == "lsstg"]["flux"])
+
+                position_table["g_i_color"] = med_g_i_color
                 selm = position_table["selected"]
                 seps = {}
                 for f in np.unique(position_table["band"]):
@@ -2392,6 +2394,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                         host_type.get("T2LSPhotoZTap", {}).get("type"),
                         host_type.get("milliquas", {}).get("broad_type"),
                         *(seps.get(f) for f in rubin_bands),
+                        med_g_i_color,
                     )
                 )
 
@@ -2539,6 +2542,7 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
                 "ls_type",
                 "milliquas_type",
                 *[f"{b}_sep_factor" for b in rubin_bands],
+                "med_g_i_color",
             ],
         )
 
@@ -2590,6 +2594,46 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
         fig.savefig(self._out_dir / "mean_pos_factors.pdf")
         plt.close()
 
+        fig, ax = plt.subplots()
+        log_offset_bins = np.linspace(
+            np.log10(offsets[cs].min().min()), np.log10(offsets[cs].max().max()), 20
+        )
+
+        binx = (log_offset_bins[1:] + log_offset_bins[:-1]) / 2
+        for c, b in zip(cs, rubin_bands, strict=True):
+            if any(offsets[c]):
+                ax.scatter(
+                    np.log10(offsets[c]),
+                    offsets["med_g_i_color"],
+                    label=BANDPASSES[b]["label"],
+                    color=BANDPASSES[b]["c"],
+                    s=2,
+                    ec="none",
+                    alpha=0.6,
+                )
+                quantiles = offsets.groupby(
+                    pd.cut(np.log10(offsets[c]), log_offset_bins)
+                )["med_g_i_color"].quantile([0.05, 0.5, 0.95])
+                ax.plot(
+                    binx,
+                    quantiles.xs(0.5, level=1),
+                    ls="-",
+                    color=BANDPASSES[b]["c"],
+                )
+                ax.fill_between(
+                    binx,
+                    quantiles.xs(0.05, level=1),
+                    quantiles.xs(0.95, level=1),
+                    color=BANDPASSES[b]["c"],
+                    alpha=0.3,
+                )
+
+        ax.set_xlabel("Separation mean(band) - mean(other) [log(arcsec)]")
+        ax.set_ylabel(r"$F_\mathrm{i}/F_\mathrm{g}$")
+        fig.tight_layout()
+        fig.savefig(self._out_dir / "band_offset_vs_color.pdf")
+        plt.close()
+
         if any(calibration_sources):
             stacked_table = vstack(list(calibration_sources.values()))
 
@@ -2603,16 +2647,6 @@ class PlotNuclearFilterLightcurves(AbsPhotoT3Unit, AbsTabulatedT2Unit):
             )
 
             lsst_mask = stacked_table["time"] > Time("2026-07-01").mjd
-
-            fig, ax = plt.subplots()
-            ax.scatter(
-                stacked_table["host_sep"] / stacked_table["err_circ"],
-                stacked_table["g_i_color"],
-            )
-            ax.set_xlabel(r"$\Psi / \delta_\mathrm{2d}$")
-            ax.set_ylabel(r"F_\mathrm{i} / F_\mathrm{g}")
-            fig.savefig(self._out_dir / "offset_vs_color.pdf")
-            plt.close()
 
             chi2_2d_cdf = chi2(2).cdf
 

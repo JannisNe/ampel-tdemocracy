@@ -216,6 +216,12 @@ class T2NuclearFilter(AbsTiedStateT2Unit, AbsTabulatedT2Unit, LasairAnnotator):
 
         # --- calculate mean position and variance --- #
 
+        # TODO:
+        #   mirror what the Rubin pipeline does here:
+        #   https://github.com/lsst/meas_base/blob/a44f29b7aada396c2c0e610bc5c534893687968c/python/lsst/meas/base/diaCalculationPlugins.py#L578-L702
+        #   i.e. take the errors and covariances into account when weighting positions,
+        #   and inflate errors such that chi2/DoF = 1.
+
         coords = SkyCoord(
             *np.array(
                 [[dp["body"][k] for k in ["ra", "dec"]] for dp in good_sources]
